@@ -164,16 +164,6 @@ export class Tree {
     }
 
     /**
-     * If heights are not currently known then calculate heights for all nodes
-     * then return the height of the specified node.
-     * @param node
-     * @returns {number}
-     */
-    getHeight(node) {
-        return node.height;
-    }
-
-    /**
      * A generator function that returns the nodes in a pre-order traversal.
      *
      * @returns {IterableIterator<IterableIterator<*|*>>}
@@ -575,11 +565,9 @@ export class Tree {
             }
         }
         this._nodeMap.delete(node._id);
-        // if(parent._children.length===1){
-        //     console.log("removing parent")
-        //     this.removeNode(node.parent); // if it's a tip then remove it's parent which is now degree two;
-        // }
         this.nodesUpdated = true;
+        this.treeUpdateCallback();
+        return this;
     }
 
     addNode(nodeData={},external=false){
@@ -1183,8 +1171,6 @@ function calculateLengths(tree){
 }
 
 
-
-
 /**
  * A private recursive function that uses the Fitch algorithm to assign
  * states to nodes using parsimony. An acctrans or deltrans algorithm can
@@ -1411,40 +1397,51 @@ class Node{
     removeChild(node){
         this._children= this._children.filter(childId => childId !== node.id);
         node._parent=null;
+        this._tree.treeUpdateCallback();
     }
 
     addChild(node) {
+        if(node.tree!==this.tree){
+            throw new Error("Trying to add a node as a child but the child node and parent don't not belong to the same tree!")
+        }
+
         if(this._children===null){
             this._children=[];
+            if(this.name){
+                console.warn(`Adding a child to a named node :${this.name}. uncertain behaviour a head. There be dragons`);
+            }
         }
         this._children.push(node.id);
         node._parent = this._id;
+        this._tree.treeUpdateCallback();
+
     }
+    rotate(recursive=false){
+        if (this.children) {
+            if (recursive) {
+                for (const child of this._children) {
+                    child.rotate(recursive)
+                }
+            }
+            this._children.reverse();
+        }
+        this._tree.treeUpdateCallback();
+    }
+   
 
-
-    // set children(value) {
-    //     this._children = value;
-    //     for(const child of this._children){
-    //         child.parent=this;
-    //     }
-    //     this._tree.nodesUpdated = true;
-    // }
     get parent() {
         return this._tree.getNode(this._parent);
     }
-    // set parent(node) {
-    //     this._parent = node;
-    //     if(this._parent.children.filter(c=>c===this).length===0){
-    //         this._parent.children.push(this)
-    //     }
-    //     this._tree.nodesUpdated = true;
-    // }
+
     get id(){
         return this._id;
     }
     get tree(){
         return this._tree;
     }
+
+
+
     //TODO use bitmap not int
     getClade(tipNameMap=null){
         if(tipNameMap==null && this.clade && this._tree.nodesUpdated===false){
