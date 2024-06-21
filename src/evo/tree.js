@@ -2,10 +2,10 @@
 
 /** @module tree */
 
-import uuid from "uuid";
-import {max, timeParse} from "d3";
-import {maxIndex} from "d3-array";
-import {dateToDecimal} from "./utilities";
+import {v4} from "uuid";
+import {timeParse} from "d3-time-format";
+import {maxIndex, max} from "d3-array";
+import {dateToDecimal} from "../utilities";
 // import * as BitSetModule from "bitset";
 // const BitSet =BitSetModule.__moduleExports;
 // for unique node ids
@@ -56,6 +56,7 @@ export class Tree {
 
         this._tipMap = new Map();
         this._nodeMap=new Map();
+        this._labelMap = new Map();
         this.nodesUpdated = false;
         // a callback function that is called whenever the tree is changed
         this._shouldUpdate=true
@@ -152,6 +153,15 @@ export class Tree {
     getExternalNode(name) {
         return this.tipMap.get(name);
     }
+    /**
+     * Returns an external node (tip) from its label.
+     *
+     * @param name
+     * @returns {object}
+     */
+    getInternalNode(label){
+        return this._labelMap.get(label)
+    }
 
     /**
      * If heights are not currently known then calculate heights for all nodes
@@ -224,7 +234,10 @@ export class Tree {
      * @returns {string}
      */
     toNewick(node = this.root) {
-        return (node.children ? `(${node.children.map(child => this.toNewick(child)).join(",")})${node.label ? node.label : ""}` : node.name) + (node.length ? `:${node.length}` : "");
+       
+        function oneLiner(node){ return (node.children ? `(${node.children.map(child => oneLiner(child)).join(",")})${node.label ? '#'+node.label : ""}` : node.name) + (node.length ? `:${node.length}` : "")};
+
+        return  (oneLiner(node) + ";");
     };
 
     /**
@@ -304,14 +317,6 @@ export class Tree {
                 this.root.addChild(rootChild2);
                 this.root.addChild(rootChild1);
             }
-
-            // connect all the children to their parents
-            this.internalNodes
-                .forEach((node) => {
-                    node.children.forEach((child) => {
-                        child.parent = node;
-                    })
-                });
 
             const l = rootChild1.length * proportion;
             rootChild2._length = l;
@@ -683,10 +688,10 @@ export class Tree {
      * @param annotations a dictionary of annotations keyed by the annotation name.
      */
     annotateNode(node, annotations) {
-        this.addAnnotations(annotations);
+        this._addAnnotations(annotations);
 
         // add the annotations to the existing annotations object for the node object
-        node.annotations = {...(node.annotations === undefined ? {} : node.annotations), ...annotations};
+        node._annotations = {...(node.annotations === undefined ? {} : node.annotations), ...annotations};
     }
 
     /**
@@ -698,7 +703,7 @@ export class Tree {
      *
      * @param annotations
      */
-    addAnnotations(annotations) {
+    _addAnnotations(annotations) {
         for (let [key, addValues] of Object.entries(annotations)) {
             let annotation = this.annotations[key];
             if (!annotation) {
@@ -954,7 +959,6 @@ export class Tree {
 
                 let parent = nodeStack.pop();
                 parent.addChild(currentNode);
-                currentNode.parent = parent;
 
                 currentNode = parent;
             } else if (token === ")") {
@@ -967,9 +971,13 @@ export class Tree {
 
                 // the end of an internal node
                 let parent = nodeStack.pop();
+                if(parent === undefined){
+                    throw new Error( "the brackets in the newick file are not balanced: too many closed")
+                }
                 parent.addChild(currentNode);
-                currentNode.parent = parent;
+                
                 level -= 1;
+
                 currentNode = parent;
 
                 labelNext = true;
@@ -979,7 +987,7 @@ export class Tree {
             } else if (token === ";") {
                 // end of the tree, check that we are back at level 0
                 if (level > 0) {
-                    throw new Error("unexpected semi-colon in tree")
+                    throw new Error("the brackets in the newick file are not balanced: too many opened")
                 }
                 break;
             } else if(token ==="[&") {
@@ -991,15 +999,20 @@ export class Tree {
                     currentNode.length = parseFloat(token);
                     lengthNext = false;
                 } else if (labelNext) {
-                    currentNode.label = token;
-                    if (!currentNode.label.startsWith("#")) {
-                        let value = parseFloat(currentNode.label);
+
+
+                    // currentNode.label = token;
+                    const label = token;
+                    if (!label.startsWith("#")) {
+                        let value = parseFloat(label);
                         if (isNaN(value)) {
-                            value = currentNode.label;
+                            value = label;
                         }
                         let label_annotation={};
                         label_annotation[options.labelName] = value;
                         tree.annotateNode(currentNode,label_annotation)
+                    }else{
+                        currentNode.label = label.replace(/^#/,''); // remove hash if present
                     }
                     labelNext = false;
                 } else {
@@ -1061,6 +1074,7 @@ export class Tree {
     /*
 
      */
+    //TODO make return first tree only unless stated otherwise
    static  parseNexus(nexus,options={}){
 
         const trees=[];
@@ -1196,10 +1210,10 @@ function fitchParsimony(name, node) {
         I = (I === undefined ? childStates : childStates.filter( (state) => I.includes(state) )); // take the intersection
     });
 
-    node.annotations = (node.annotations === undefined ? {} : node.annotations);
+    // node.annotations = (node.annotations === undefined ? {} : node.annotations);
 
     // set the node annotation to the intersection if not empty, the union otherwise
-    node.annotations[name] = [...(I.length > 0 ? I : U)];
+    this.annotateNode(node, {[name]:[...(I.length > 0 ? I : U)]});
 
     return node.annotations[name];
 }
@@ -1244,40 +1258,6 @@ function makeNode(nodeData,external=false){
     }
 }
 
-// /**
-//  * A private function that sets up the tree by traversing from the root Node and sets all heights and lengths
-//  * @param node
-//  */
-// function setUpNodes(node){
-//     if(node.children){
-//         const childrenNodes=[]
-//         for(const child of node.children){
-//             //HERE?
-//             const childNode = makeNode.call(this,{...child,parent:node,level:node.level+1})
-//             childrenNodes.push(childNode);
-//             setUpNodes.call(this,childNode);
-//         }
-//         node.children = childrenNodes;
-//     }
-// }
-
-// function setUpArraysAndMaps() {
-//     this.nodesUpdated=false;
-//     this._nodeMap = new Map(this.preorder().map((node) => [node.id, node]));
-//     this._tipMap = new Map(this.externalNodes.map((tip) => [tip.name, tip]));
-//     for( const node in this.preorder()){
-//         if (node.label && node.label.startsWith("#")) {
-//             // an id string has been specified in the newick label.
-//             node._id = node.label.substring(1);
-//         }
-//         if (node.annotations) {
-//             this.addAnnotations(node.annotations);
-//         }
-//     };
-//     //TODO add to loop above
-//
-// }
-
 /**
  * The node class. This wraps a node in a tree and notifies the tree when
  * the node updates. It can be treated almost exactly like an object. It just has
@@ -1291,13 +1271,11 @@ function makeNode(nodeData,external=false){
             parent:undefined,
             children:null,
             label:undefined,
-            id:`node-${uuid.v4()}`
+            id:`node-${v4()}`
         }
  */
 
 class Node{
-
-
 
     static DEFAULT_NODE(){
         return{
@@ -1317,9 +1295,7 @@ class Node{
 
     constructor(nodeData ={}){
         const data = {...Node.DEFAULT_NODE(),...nodeData};
-//TODO like symbol here but need id's in figure
-        // this._id = Symbol("node");
-        this._id = ` node-${uuid.v4()}`
+        this._id = ` node-${v4()}`
         this._height = data.height;
         this._length = data.length;
         this._name = data.name;
@@ -1328,8 +1304,6 @@ class Node{
         this._children = data.children;
         this._tree = data.tree;
         this._label = data.label;
-
-
     }
     get level() {
         let level=0;
@@ -1344,6 +1318,12 @@ class Node{
         return this._name;
     }
     set name(value){
+        if(this._tree._labelMap.has(label)){
+            throw new Error(`Node Names are used to key nodes and must be unique. Name ${value} already exists in the tree`)
+        }
+        if(this._children){
+            throw new Error(`Node Names are only allowed for external nodes.Name ${value} was added to a node with children`)
+        }
         this._tree.nodesUpdated=true;
         this._name = value;
     }
@@ -1353,7 +1333,18 @@ class Node{
     }
 
     set label(value) {
+        if(this._tree._labelMap.has(value)){
+            throw new Error(`Node labels are used to key nodes and must be unique. Label ${value} already exists in the tree`)
+        }
+        if(this._children===null){
+            throw new Error(`Node Labels are only allowed for internals  nodes. label ${value} was added to a node without children`)
+
+        }
+        this._tree._labelMap.set(value,this);
         this._label = value;
+        this._tree.nodesUpdated=true;
+
+        
     }
     get height() {
         if(!this._tree.heightsKnown){
@@ -1376,6 +1367,9 @@ class Node{
     }
 
     set height(value) {
+        if(!this._tree.lengthsKnown){
+            calculateHeights.call(this._tree);
+        }
         this._height = value;
         this._tree.lengthsKnown=false;
         // this._tree.treeUpdateCallback();
@@ -1392,23 +1386,22 @@ class Node{
         if(!this._tree.lengthsKnown){
             calculateLengths.call(this._tree);
         }
+        this._tree.heightsKnown=false;
         this._length = value;
         // this._tree.treeUpdateCallback();
     }
 
     get annotations() {
-        return this._annotations;
+        return {...this._annotations};
     }
 
-    set annotations(value) {
-        this._annotations = value;
+    set annotations(value){
+        throw new Error("node annotations can not be set this way. The tree needs to know about annotation types. Use tree.annotateNode to set annotations")
     }
-
     /**
      * Return an array over the children nodes
      * @return {*}
      */
-    //TODO return empty not null
     get children() {
         if(this._children===null){
             return null
@@ -1425,8 +1418,9 @@ class Node{
             this._children=[];
         }
         this._children.push(node.id);
-        node.parent = this;
+        node._parent = this._id;
     }
+
 
     // set children(value) {
     //     this._children = value;
@@ -1437,10 +1431,6 @@ class Node{
     // }
     get parent() {
         return this._tree.getNode(this._parent);
-    }
-
-    set parent(parent){
-        this._parent=parent.id
     }
     // set parent(node) {
     //     this._parent = node;

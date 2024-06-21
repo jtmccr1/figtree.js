@@ -1,4 +1,4 @@
-import {isFunction} from "../utilities";
+import {isFunction} from "../../utilities";
 import {select} from "d3";
 import uuid from "uuid";
 

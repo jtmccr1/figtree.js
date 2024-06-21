@@ -1,5 +1,5 @@
 import {Bauble} from "../bauble";
-import {mergeDeep} from "../../utilities";
+import {mergeDeep} from "../../../utilities";
 import {Branch, branchPathGenerator} from "./branch";
 import {roughFactory} from "../nodes/roughcirclebauble";
 import {curveStepBefore} from "d3"

@@ -1,10 +1,10 @@
 "use strict";
 import {easeCubic, scaleLinear, select} from "d3";
 import uuid from "uuid";
-import {mergeDeep} from "../utilities";
+import {mergeDeep} from "../../utilities.js";
 import 'd3-selection-multi';
 import {BaubleManager} from "../features/baubleManager"
-import p from "../_privateConstants.js"
+import p from "../../_privateConstants.js"
 import extent from "d3-array/src/extent";
 
 /** @module figtree */

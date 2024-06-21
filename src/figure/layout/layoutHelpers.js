@@ -1,6 +1,6 @@
 import {mean} from "d3";
-import {Type} from "../tree";
-import p from "../_privateConstants.js";
+import {Type} from "../../evo/tree.js";
+import p from "../../_privateConstants.js";
 
 export function getClassesFromNode(node){
     let classes = [(!node.children ? "external-node" : "internal-node")];

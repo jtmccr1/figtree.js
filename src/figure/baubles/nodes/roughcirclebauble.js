@@ -1,5 +1,5 @@
 import rough from 'roughjs/dist/rough.umd';
-import {mergeDeep} from "../../utilities";
+import {mergeDeep} from "../../../utilities";
 import {Bauble} from "../bauble";
 import {AbstractNodeBauble} from "./nodeBauble";
 import {select} from "d3"

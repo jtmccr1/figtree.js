@@ -1,5 +1,5 @@
 //https://stackoverflow.com/questions/27936772/how-to-deep-merge-instead-of-shallow-merge
-import {timeParse,timeFormat} from "d3"
+import {timeParse,timeFormat} from "d3-time-format"
 
 export function isObject(item) {
     return (item && typeof item === 'object' && !Array.isArray(item));
