@@ -17,6 +17,7 @@ export class CircleBauble extends AbstractNodeBauble{
     {
         super(dataP,options);
         this.attrs= {"r":5,...this.attrs}
+        this._dataP = dataP;
     }
 
     /**
@@ -35,8 +36,8 @@ export class CircleBauble extends AbstractNodeBauble{
     updater(update,{x,y}){
        return  update
         .transition(v4())
-        .duration(this._transitions.duration)
-        .ease(this._transitions.ease)
+        // .duration(super._transitions.duration)
+        // .ease(super._transitions.ease)
         .attr("cx",d=>x(d.x))
         .attr("cy",d=>y(d.y))
         .attr("r",(d,i,n) =>  typeof this.attrs.r === 'function' ? this.attrs.r(d, i, n) : this.attrs.r)
@@ -88,6 +89,6 @@ export class CircleBauble extends AbstractNodeBauble{
  * helper function returns a new instance of a circle bauble.
  * @return {CircleBauble}
  */
-export function circle(){
-    return new CircleBauble();
+export function circle(dataP,options){
+    return new CircleBauble(dataP,options);
 }

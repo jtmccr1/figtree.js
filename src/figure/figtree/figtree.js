@@ -5,7 +5,7 @@ import { easeCubic } from "d3-ease";
 import { v4 } from "uuid";
 import { mergeDeep } from "../../utilities.js";
 import "d3-selection-multi";
-import { BaubleManager } from "../features/baubleManager";
+import {rectangularLayout} from '../layout'
 import p from "../../_privateConstants.js";
 import { extent } from "d3-array";
 
@@ -23,7 +23,7 @@ export class FigTree {
   static DEFAULT_SETTINGS() {
     return {
       margins: { top: 10, bottom: 10, left: 10, right: 10 },
-      layout:rectangularLayout(),
+      layout:rectangularLayout,
       transitions: {
         duration: 500,
         ease: easeCubic,
@@ -54,7 +54,6 @@ export class FigTree {
 
   constructor(settings = {}) {
     this.id = Symbol("FIGREE");
-    this._margins = margins;
 
     const safeSettings = mergeDeep(FigTree.DEFAULT_SETTINGS(), settings);
 
@@ -65,9 +64,8 @@ export class FigTree {
     this[p.svg] = safeSettings.svg;
     this[p.tree] = safeSettings.tree;
 
-    this[p.tree] = tree.addListener();
-
-    setupSVG.call(this);
+    this[p.layout] = safeSettings.layout
+    this.setupSVG();
     this.axes = [];
     this._features = [];
     this._vertexCache = {};
@@ -75,6 +73,13 @@ export class FigTree {
     this.layoutUpdated = true;
     this._calculateScales = true;
     this.baubles=[];
+
+    this[p.tree].subscribeCallback(()=>{
+      this._vertexCache = {} // clear;
+      this.render();
+    })
+    this.settings = safeSettings;
+
     //TODO make that a constant
 
     for(const bauble of safeSettings.baubles){
@@ -130,7 +135,7 @@ export class FigTree {
 
   //todo - layout start node
   layoutTree() {
-    this._layout(this.tree.root, this.layoutCache);
+    this[p.layout](this.tree().root, this._vertexCache);
   }
 
   render() {
@@ -141,11 +146,11 @@ export class FigTree {
 
     if(this.layoutUpdated){
         //update layout
-        this.layoutNodes();
+        this.layoutTree();
         this._setUpScales();
         //update scales if needed
-        for (const bauble of this._baubles) {
-            bauble.renderAll();
+        for (const bauble of this.baubles) {
+            bauble.renderAll(this.scales,this._vertexCache);
         }
     }
 
@@ -243,21 +248,49 @@ export class FigTree {
     this.update();
     return this;
   }
+
+  _setUpScales() {
+    let width, height;
+    if (Object.keys(this.settings).indexOf("width") > -1) {
+      width = this.settings.width;
+    } else {
+      width = this[p.svg].getBoundingClientRect().width;
+    }
+    if (Object.keys(this.settings).indexOf("height") > -1) {
+      height = this.settings.height;
+    } else {
+      height = this[p.svg].getBoundingClientRect().height;
+    }
+      const rootVertex = this._vertexCache[(this.tree().root.id)];
+      const xdomain = [0,rootVertex.maxX];
+      const ydomain = [0, rootVertex.maxY];
+      const xScale = this.settings.x
+        .scale()
+        .domain(xdomain)
+        .range([0, width - this._margins.right - this._margins.left]);
+      const yScale = this.settings.y
+        .scale()
+        .domain(ydomain)
+        .range([height - this._margins.bottom - this._margins.top, 0]); //flipped
+      this.scales = { x: xScale, y: yScale, width, height };
+  }
+
+  setupSVG() {
+    this.svgId = `g-${v4()}`;
+    select(this[p.svg]).select(`#${this.svgId}`).remove();
+  
+    // add a group which will contain the new tree
+    select(this[p.svg])
+      .append("g")
+      .attr("id", this.svgId)
+      .attr("transform", `translate(${this._margins.left},${this._margins.top})`);
+  
+    this.svgSelection = select(this[p.svg]).select(`#${this.svgId}`);
+  
+  }
 }
 
-function setupSVG() {
-  this.svgId = `g-${v4()}`;
-  select(this[p.svg]).select(`#${this.svgId}`).remove();
 
-  // add a group which will contain the new tree
-  select(this[p.svg])
-    .append("g")
-    .attr("id", this.svgId)
-    .attr("transform", `translate(${this._margins.left},${this._margins.top})`);
-
-  this.svgSelection = select(this[p.svg]).select(`#${this.svgId}`);
-
-}
 /**
  * A helper function that sets the positions of the node and nodebackground groups in the svg and then calls update
  * functions of the node and node background elements.
@@ -274,36 +307,4 @@ function updateNodePositions(nodes) {
  */
 function updateBranchPositions(nodes) {
   this.branchManager.update(nodes);
-}
-function _setUpScales() {
-  let width, height;
-  if (Object.keys(this.settings).indexOf("width") > -1) {
-    width = this.settings.width;
-  } else {
-    width = this[p.svg].getBoundingClientRect().width;
-  }
-  if (Object.keys(this.settings).indexOf("height") > -1) {
-    height = this.settings.height;
-  } else {
-    height = this[p.svg].getBoundingClientRect().height;
-  }
-  if (this._calculateScales) {
-    const xdomain = extent(this.verticesForScales.map((n) => n[this.id].x));
-    const ydomain = extent(this.verticesForScales.map((n) => n[this.id].y));
-    const xScale = this.settings.xScale
-      .scale()
-      .domain(xdomain)
-      .range([0, width - this._margins.right - this._margins.left]);
-    const yScale = this.settings.yScale
-      .scale()
-      .domain(ydomain)
-      .range([height - this._margins.bottom - this._margins.top, 0]); //flipped
-    this.scales = { x: xScale, y: yScale, width, height };
-  } else {
-    const xdomain = extent(this.verticesForScales.map((n) => n[this.id].x));
-    const ydomain = extent(this.verticesForScales.map((n) => n[this.id].y));
-    const xScale = this.settings.xScale.scale().domain(xdomain).range(xdomain);
-    const yScale = this.settings.yScale.scale().domain(ydomain).range(ydomain); //flipped
-    this.scales = { x: xScale, y: yScale, width, height };
-  }
 }
