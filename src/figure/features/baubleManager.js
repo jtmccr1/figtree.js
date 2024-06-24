@@ -1,6 +1,6 @@
-import {isFunction} from "../../utilities";
-import {select} from "d3";
-import uuid from "uuid";
+import {select} from "d3-selection";
+import {transition} from "d3-transition";
+import {v4} from "uuid";
 
 
 // also but some case specific helper functions for each style.
@@ -92,6 +92,7 @@ export  class BaubleManager{
         if(svgLayer.empty()){
             svgLayer = this.figure().svgSelection.append("g").attr("class",this.layer());
         }
+
         svgLayer.selectAll(`.${this.class()}`)
             .data(data, (d) => `${this.class()}_${d.id}`)
             .join(
@@ -103,35 +104,38 @@ export  class BaubleManager{
                         return `translate(${this.figure().scales.x(d[this._figureId].x)}, ${this.figure().scales.y(d[this._figureId].y)})`;
                     })
                     .each(function (d) {
+                        console.log(self._baubleHelpers)
                        for(const bauble of self._baubleHelpers){
+                        console.log('updating')
                            if(bauble.filter()(d)){
                                bauble.update(select(this));
                            }
                        }
                     }),
-                update => update
-                    .call(update => update.transition(uuid.v4())
-                        .duration(this.figure().transitions().transitionDuration)
-                        .ease(this.figure().transitions().transitionEase)
-                        .attr("class", (d) => [`${this.class()}`, ...d[this._figureId].classes].join(" "))
-                        .attr("transform", (d) => {
-                            return `translate(${this.figure().scales.x(d[this._figureId].x)}, ${this.figure().scales.y(d[this._figureId].y)})`;
-                        })
-                        .each(function (d) {
-                            for(const bauble of self._baubleHelpers){
-                                if(bauble.filter()(d)) {
-                                    bauble.update(select(this));
-                                }else{
-                                    bauble.clear(select(this))
-                                }
+                update =>  update
+                .call(g => g
+                    .transition(v4())
+                    .duration(this.figure().transitions().transitionDuration)
+                    .ease(this.figure().transitions().transitionEase)
+                    .attr("class", (d) => [`${this.class()}`, ...d[this._figureId].classes].join(" "))
+                    .attr("transform", (d) => {
+                        return `translate(${this.figure().scales.x(d[this._figureId].x)}, ${this.figure().scales.y(d[this._figureId].y)})`;
+                    })
+                    .each(function (d) {
+                        for(const bauble of self._baubleHelpers){
+                            if(bauble.filter()(d)) {
+                                bauble.update(select(this));
+                            }else{
+                                bauble.clear(select(this))
                             }
-                        })
-                    )
-            );
-    }
+                        }
+                    })
+                )
+                )
 
 
 
+}
 }
 
 

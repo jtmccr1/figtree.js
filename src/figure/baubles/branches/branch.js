@@ -1,7 +1,9 @@
 import {curveStepBefore, line} from "d3-shape";
 import {Bauble} from "../bauble";
-import {mouse, select} from "d3"
-import uuid from "uuid"
+import { select} from "d3-selection"
+import {transition} from "d3-transition";
+
+import {v4} from "uuid"
 import {BaubleManager} from "../../features/baubleManager";
 
 export class Branch extends Bauble {
@@ -30,8 +32,8 @@ export class Branch extends Bauble {
                     .append("path")
                     .attr("d", (v1,i) => this.branchPath(v1,i))
                     .attr("class", `branch-path ${this.id}`)
-                    .attrs(this._attrs)
-                    .styles(this._styles)
+                    // .attrs(this._attrs)
+                    // .styles(this._styles)
                     .each((d,i,n)=>{
                         const element = select(n[i]);
                         for( const [key,func] of Object.entries(this._interactions)){
@@ -39,12 +41,13 @@ export class Branch extends Bauble {
                         }
                     }),
                 update => update
-                    .call(update => update.transition(d=>`u${uuid.v4()}`)
+                    .call(update => update
+                        .transition(d=>`u${v4()}`)
                         .duration(this.transitions().transitionDuration)
                         .ease(this.transitions().transitionEase)
                         .attr("d", (edge,i) => this.branchPath(edge,i))
-                        .attrs(this._attrs)
-                        .styles(this._styles)
+                        // .attrs(this._attrs)
+                        // .styles(this._styles)
                         .each((d,i,n)=>{
                             const element = select(n[i]);
                             for( const [key,func] of Object.entries(this._interactions)){
@@ -126,23 +129,23 @@ export class Branch extends Bauble {
     reRootOnClick(distance ="x"){
         super.on("click",
             (node,i,n)=>{
-                const parent = node.parent;
-                const id = this.manager()._figureId;
-                const x1 = this.manager().figure().scales.x(node[id].x),
-                    x2 = this.manager().figure().scales.x(parent[id].x),
-                    y1=this.manager().figure().scales.y(node[id].y),
-                    y2=this.manager().figure().scales.y(parent[id].y),
-                    [mx,my] = mouse(document.getElementById(this.manager().figure().svgId));
+                // const parent = node.parent;
+                // const id = this.manager()._figureId;
+                // const x1 = this.manager().figure().scales.x(node[id].x),
+                //     x2 = this.manager().figure().scales.x(parent[id].x),
+                //     y1=this.manager().figure().scales.y(node[id].y),
+                //     y2=this.manager().figure().scales.y(parent[id].y),
+                //     [mx,my] = mouse(document.getElementById(this.manager().figure().svgId));
 
-                const proportion = distance.toLocaleLowerCase()==="x"? Math.abs( (mx - x2) / (x1 - x2)):distance.toLocaleLowerCase()==="euclidean"?
-                        Math.sqrt(Math.pow(mx-x2,2)+Math.pow(my-y2,2))/Math.sqrt(Math.pow(x1-x2,2)+Math.pow(y1-y2,2)):
-                        null;
-                if(!proportion){
-                    throw new Error(`Error in reroot on click distance ${distance} is not recognize. Please use x or euclidean`)
-                }
+                // const proportion = distance.toLocaleLowerCase()==="x"? Math.abs( (mx - x2) / (x1 - x2)):distance.toLocaleLowerCase()==="euclidean"?
+                //         Math.sqrt(Math.pow(mx-x2,2)+Math.pow(my-y2,2))/Math.sqrt(Math.pow(x1-x2,2)+Math.pow(y1-y2,2)):
+                //         null;
+                // if(!proportion){
+                //     throw new Error(`Error in reroot on click distance ${distance} is not recognize. Please use x or euclidean`)
+                // }
 
                 const tree = this.manager().figure().tree();
-                tree.reroot(node,proportion)
+                tree.reroot(node,0.5)
 
             });
         return this;

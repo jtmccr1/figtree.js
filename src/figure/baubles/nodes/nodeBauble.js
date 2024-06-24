@@ -1,5 +1,5 @@
 import {Bauble} from "../bauble";
-import {select} from "d3"
+import {select} from "d3-selection"
 import p from "../../../_privateConstants";
 /*
 An abstract class for node baubles

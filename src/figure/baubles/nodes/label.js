@@ -1,5 +1,7 @@
-import {select} from "d3";
+import {select} from "d3-selection";
 import {Bauble} from "../bauble";
+import {transition} from "d3-transition";
+
 
 /**
  * Bauble class for labels
@@ -38,8 +40,8 @@ export class Label extends Bauble{
                 enter => enter
                     .append("text")
                     .attr("class",`label ${this.id}`)
-                    .attrs(this._attrs)
-                    .styles(this._styles)
+                    // .attrs(this._attrs)
+                    // .styles(this._styles)
                     .each((d,i,n)=>{
                         const element = select(n[i]);
                         for( const [key,func] of Object.entries(this._interactions)){
@@ -48,11 +50,12 @@ export class Label extends Bauble{
                     })
                     .text(d=>this._text(d)),
                 update => update
-                    .call(update => update.transition()
+                    .call(update => update
+                        .transition()
                         .duration(this.transitions().transitionDuration)
                         .ease(this.transitions().transitionEase)
-                        .attrs(this._attrs)
-                        .styles(this._styles)
+                        // .attrs(this._attrs)
+                        // .styles(this._styles)
                         .each((d,i,n)=>{
                             const element = select(n[i]);
                             for( const [key,func] of Object.entries(this._interactions)){

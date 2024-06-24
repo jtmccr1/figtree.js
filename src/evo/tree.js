@@ -41,19 +41,8 @@ export class Tree {
 
         this.heightsKnown = heightsKnown;
         this.lengthsKnown = !heightsKnown;
-        // this._root = makeNode.call(this,{...rootNode,...{length:0,level:0}});
-        // This converts all the json objects to Node instances
-        // setUpNodes.call(this,this.root);
-        this.annotations = {};
-        // for(const node of this.preorder()){
-        //     if (node.label && node.label.startsWith("#")) {
-        //         // an id string has been specified in the newick label.
-        //         node._id = node.label.substring(1);
-        //     }
-        //     this.addAnnotations(node.annotations);
-        //     this._nodeMap.set(node.id, node);
-        // }
 
+        this.annotations = {};
         this._tipMap = new Map();
         this._nodeMap=new Map();
         this._labelMap = new Map();
@@ -71,10 +60,6 @@ export class Tree {
     get root() {
         return this._root;
     };
-
-    set root(node){
-        this._root=node;
-    }
 
     /**
      * Gets an array containing all the node objects
@@ -933,7 +918,7 @@ export class Tree {
                 if (currentNode) {
                     nodeStack.push(currentNode);
                 }else{
-                    tree.root=node;
+                    tree._root=node;
                 }
                 currentNode = node;
 
@@ -1440,7 +1425,9 @@ class Node{
         return this._tree;
     }
 
-
+    isRoot(){
+        return this._tree.root===this;
+    }
 
     //TODO use bitmap not int
     getClade(tipNameMap=null){

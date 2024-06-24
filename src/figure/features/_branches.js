@@ -1,7 +1,8 @@
 import {BaubleManager} from "./baubleManager";
 import {isFunction} from "../utilities";
 import {Branch} from "../baubles/branches/branch";
-import {select,curveStepBefore,mouse} from "d3";
+import {select,mouse} from "d3-selection";
+import {curveStepBefore} from "d3-shape";
 import p from "../_privateConstants";
 
 class BranchFactory extends BaubleManager{

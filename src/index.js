@@ -45,4 +45,5 @@
 // trendLine,textAnnotation,traitBar,geographicLayout,
 // predicatedRootToTipLayout,image,reverseNunoLayout};
 
-export {Tree} from "./evo";
+export * from "./evo";
+export * from "./figure"

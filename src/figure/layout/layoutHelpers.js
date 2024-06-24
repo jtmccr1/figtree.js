@@ -1,4 +1,4 @@
-import {mean} from "d3";
+import {mean} from "d3-array";
 import {Type} from "../../evo/tree.js";
 import p from "../../_privateConstants.js";
 
