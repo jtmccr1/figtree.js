@@ -145,6 +145,7 @@
         FigTree,
         rectangularLayout,
         circle,
+        rectangle,
       } from "./dist/figtree.esm.js";
 
       const newickString =
@@ -164,16 +165,22 @@
         tree,
         layout: rectangularLayout,
         baubles: [
-          circle(tree.nodes, {
+          circle(tree.externalNodes, {
             attrs: {
               r: "7",
               fill: "blue",
               stroke: "red",
-              strokeWidth: function (d, i) {
-                return i;
-              },
+              strokeWidth: 1
             },
           }),
+          rectangle(tree.internalNodes,{
+            attrs:{
+                width:10,
+                height:10,
+                fill:"green"
+            }
+
+          })
         ],
       });
 
@@ -202,11 +209,11 @@
 
       document.getElementById("sort_up_button").onclick = function () {
         tree.orderByNodeDensity(false);
-        figTree.render();
+        // figTree.render();
       };
       document.getElementById("sort_down_button").onclick = function () {
         tree.orderByNodeDensity(true);
-        figTree.render();
+        // figTree.render();
       };
 
       document.getElementById("rectangular_button").onclick = function () {

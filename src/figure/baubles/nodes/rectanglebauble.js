@@ -1,117 +1,51 @@
-import {mergeDeep} from "../../utilities";
-import {Bauble} from "../bauble";
-import {select} from "d3";
-import uuid from "uuid";
-import p from "../../_privateConstants";
-import {AbstractNodeBauble} from "./nodeBauble";
+import {Bauble} from '../bauble'
 
-export class RectangularBauble extends AbstractNodeBauble {
 
-    constructor() {
-        super();
-        this._attrs ={
-                height: 16,
-                width: 6,
-                rx: 2,
-                ry:2,
-            };
+export class RectangularShapeDelegate  {
+
+    constructor(options){
+        const {attrs} = options;
+        this.attrs= {width:5,
+            height:5,
+            rx:2,
+            ry:2,
+            ...attrs}
+
         }
+        appender(enter,vertexMap,{x,y}){
+            return  enter
+             .append("rect")
+             .attr("x",d=>x(vertexMap[d.id].x)-this.width(d)/2)
+             .attr("y",d=>y(vertexMap[d.id].y)-this.height(d)/2)
+             .attr("width",(d,i,n) =>  typeof this.attrs.width === 'function' ? this.attrs.width(d, i, n) : this.attrs.width)
+             .attr("height",(d,i,n) =>  typeof this.attrs.r === 'function' ? this.attrs.height(d, i, n) : this.attrs.height)
+             .attr("rx",(d,i,n) =>  typeof this.attrs.r === 'function' ? this.attrs.ry(d, i, n) : this.attrs.rx)
+             .attr("ry",(d,i,n) =>  typeof this.attrs.r === 'function' ? this.attrs.rx(d, i, n) : this.attrs.ry)
+         }
+         updater(update,vertexMap, {x,y}){
+            return  update
+            .attr("x",d=>x(vertexMap[d.id].x)-this.width(d)/2)
+            .attr("y",d=>y(vertexMap[d.id].y)-this.height(d)/2)
+            .attr("width",(d,i,n) =>  typeof this.attrs.width === 'function' ? this.attrs.width(d, i, n) : this.attrs.width)
+            .attr("height",(d,i,n) =>  typeof this.attrs.r === 'function' ? this.attrs.height(d, i, n) : this.attrs.height)
+            .attr("rx",(d,i,n) =>  typeof this.attrs.r === 'function' ? this.attrs.ry(d, i, n) : this.attrs.rx)
+            .attr("ry",(d,i,n) =>  typeof this.attrs.r === 'function' ? this.attrs.rx(d, i, n) : this.attrs.ry)
+     
+         }
 
-
-    /**
-     * A function that assigns width,height,x,y,rx, and ry attributes to a rect selection.
-     * @param selection
-     * @param border
-     * @return {*|null|undefined}
-     */
-    update(selection){
-    if(selection==null&&!this.selection){
-        return
-    }
-    if(selection){
-        this.selection=selection;
-    }
-        const w = this.attr("width");
-        const h =this.attr("height");
-        return selection
-            .selectAll(`.${this.id}`)
-            .data(d => [d].filter(this.filter()),d=>this.id)
-            .join(
-                enter => enter
-                    .append("rect")
-                    .attr("class",`node-shape ${this.id}`)
-                    .attr("x", -w / 2)
-                    .attr("y", -h / 2)
-                    .attrs(this._attrs)
-                    .styles(this._styles)
-                    .each((d,i,n)=>{
-                        const element = select(n[i]);
-                        for( const [key,func] of Object.entries(this._interactions)){
-                            element.on(key,(d,i,n)=>func(d,i,n))
-                        }
-                    }),
-                update => update
-                    .call(update =>update.transition(d=>`u${uuid.v4()}`)
-                        .duration(this.transitions().transitionDuration)
-                        .ease(this.transitions().transitionEase)
-                        .attr("x", -w / 2)
-                        .attr("y", -h / 2)
-                        .attrs(this._attrs)
-                        .styles(this._styles)
-                        .each((d,i,n)=>{
-                            const element = select(n[i]);
-                            for( const [key,func] of Object.entries(this._interactions)){
-                                element.on(key,(d,i,n)=>func(d,i,n))
-                            }
-                        })
-                    )
-            )
-
-    };
-
-    /**
-     * Helper function to class the node as 'hovered' and update the radius if provided
-     * @param r - optional hover border
-     * @return {retangleBauble}
-     */
-    hilightOnHover(r = null) {
-        let oldR;
-        super.on("mouseenter",
-            (d, i,n) => {
-                if(r) {
-                    if (!this._attrs.r) {
-                        this._attrs.r = this._attrs["r"];
-                    }
-                    this.attr("width", this.attr("width")+r);
-                    this.attr("height", this.attr("height")+r);
-
-                }
-                const parent = select(n[i]).node().parentNode;
-                this.update(select(parent));
-                select(parent).classed("hovered",true)
-                    .raise();
-
-                this.attr("width", this.attr("width")-r);
-                this.attr("height", this.attr("height")-r);
-                // move to top
-
-            });
-        super.on("mouseleave",
-            (d,i,n) => {
-
-                const parent = select(n[i]).node().parentNode;
-                select(parent).classed("hovered",false);
-                this.update(select(parent));
-
-            });
-        return this;
-    }
+         width(d){
+            return  typeof this.attrs.width === 'function' ? this.attrs.width(d, i, n) : this.attrs.width; 
+        }
+        height(d){
+            return typeof this.attrs.r === 'function' ? this.attrs.height(d, i, n) : this.attrs.height;
+        }
 }
 
 /**
  * A helper function that returns a new rectangular bauble
  * @returns {RectangularBauble}
  */
-export function rectangle(){
-    return new RectangularBauble();
-}
+export function rectangle(dataP,options){
+        return new Bauble(dataP,new RectangularShapeDelegate(options),options);
+    }
+    
