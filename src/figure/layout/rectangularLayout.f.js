@@ -2,6 +2,7 @@ import { mean, min, max } from "d3-array";
 
 export function rectangularLayout(node, providedCache = {}) {
   const cache = providedCache ? providedCache : {};
+  cache.type="EUCLIDEAN"
   const layout = function (node) {
     if (cache[node.id]!==undefined) {
       return cache[node.id];
