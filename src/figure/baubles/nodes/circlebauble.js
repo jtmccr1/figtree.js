@@ -1,23 +1,17 @@
-import {select} from "d3-selection";
-import {transition} from "d3-transition";
-
-import {v4} from "uuid"
-import {AbstractNodeBauble} from "./nodeBauble";
-
+import {Bauble} from '../bauble'
 /**
  * The CircleBauble class. Each vertex is assigned a circle in the svg.
  */
-export class CircleBauble extends AbstractNodeBauble{
+export class CircleShapeDelegate {
 
     /**
      * The constructor.
      * @param [settings.radius=6] - the radius of the circle
      */
-    constructor(dataP,options)
+    constructor(options)
     {
-        super(dataP,options);
-        this.attrs= {"r":5,...this.attrs}
-        this._dataP = dataP;
+        const {attrs} = options;
+        this.attrs= {"r":5,...attrs}
     }
 
     /**
@@ -26,20 +20,17 @@ export class CircleBauble extends AbstractNodeBauble{
      * @param selection
      */
 
-    appender(enter,{x,y}){
+    appender(enter,vertexMap,{x,y}){
        return  enter
         .append("circle")
-        .attr("cx",d=>x(d.x))
-        .attr("cy",d=>y(d.y))
+        .attr("cx",d=>x(vertexMap[d.id].x))
+        .attr("cy",d=>y(vertexMap[d.id].y))
         .attr("r",(d,i,n) =>  typeof this.attrs.r === 'function' ? this.attrs.r(d, i, n) : this.attrs.r)
     }
-    updater(update,{x,y}){
+    updater(update,vertexMap, {x,y}){
        return  update
-        .transition(v4())
-        // .duration(super._transitions.duration)
-        // .ease(super._transitions.ease)
-        .attr("cx",d=>x(d.x))
-        .attr("cy",d=>y(d.y))
+        .attr("cx",d=>x(vertexMap[d.id].x))
+        .attr("cy",d=>y(vertexMap[d.id].y))
         .attr("r",(d,i,n) =>  typeof this.attrs.r === 'function' ? this.attrs.r(d, i, n) : this.attrs.r)
 
     }
@@ -90,5 +81,5 @@ export class CircleBauble extends AbstractNodeBauble{
  * @return {CircleBauble}
  */
 export function circle(dataP,options){
-    return new CircleBauble(dataP,options);
+    return new Bauble(dataP,new CircleShapeDelegate(options),options);
 }

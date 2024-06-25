@@ -5,9 +5,9 @@ import p from "../../../_privateConstants";
 An abstract class for node baubles
  */
 export class AbstractNodeBauble extends Bauble{
-    constructor()
+    constructor(dataP,options)
     {
-        super();
+        super(dataP,options);
     }
 
     /**

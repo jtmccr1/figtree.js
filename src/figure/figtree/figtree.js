@@ -59,7 +59,7 @@ export class FigTree {
 
     this._margins = safeSettings.margins;
 
-    this._transitions = safeSettings.transition;
+    this._transitions = safeSettings.transitions;
 
     this[p.svg] = safeSettings.svg;
     this[p.tree] = safeSettings.tree;
@@ -94,7 +94,7 @@ export class FigTree {
   addBauble(bauble){
     this.baubles.push(bauble);
     bauble.selection(this.svgSelection)
-    bauble.setFigureTransitions(this.transitions)
+    bauble.setFigureTransitions(this.transitions())
   }
 
 //   handelTreeUpdate({nodeId,updateLayout}){
