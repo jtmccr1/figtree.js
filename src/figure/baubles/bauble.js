@@ -55,18 +55,6 @@ export class Bauble {
       return this._dataP;
     }
   }
-  /**
-   * A function that appends the element to the selection, joins the data, assigns the attributes to the svg objects
-   * updates and remove unneeded objects.
-   * @param selection
-   */
-  update(selection) {
-    throw new Error("Don't call the base class method");
-  }
-
-  clear(selection) {
-    selection.selectAll(`.${this.id}`).remove();
-  }
   // figure needs to know the extent of the layed out data to make scales,
   // need a function that goes from here to scale
 
@@ -80,65 +68,60 @@ export class Bauble {
       .selectAll(`.${this.id}`)
       .data(this.data)
       .join(
-        (enter) =>
-          this.shapeDelegate
-            .appender(enter, vertexMap,scales)
-            // .attr("class", (d) => getClassesFromNode(d).join(" "))
-            .attr("class", d=>`node-shape ${this.id} ${getClassesFromNode(d).join(" ")}`)
-            .attr("id", d=>d.id)
-            .attr("stroke-width", (d, i, n) => this.applyStrokeWidth(d, i, n))
-            .attr("stroke", (d, i, n) => this.applyStroke(d, i, n))
-            .attr("fill", (d, i, n) => this.applyFill(d, i, n))
-            .attr("opacity", (d, i, n) => this.applyOpacity(d, i, n))
-            .each((d, i, n) => {
-              const element = select(n[i]);
-              for (const [key, func] of Object.entries(this.interactions)) {
-                element.on(key, (d, i, n) => func(d, i, n));
-              }
-            }),
-        (update) => {
-          const selection = update
-            .transition(v4())
-            .duration(this._transitions.duration)
-            .ease(this._transitions.ease);
-
-          return this.shapeDelegate
-            .updater(selection, vertexMap,scales)
-            // .attr("class", (d) => getClassesFromNode(d).join(" "))
-            .attr("class", d=>`node-shape ${this.id} ${getClassesFromNode(d).join(" ")}`)
-            .attr("id", d=>d.id)
-            .attr("stroke-width", (d, i, n) => this.applyStrokeWidth(d, i, n))
-            .attr("stroke", (d, i, n) => this.applyStroke(d, i, n))
-            .attr("fill", (d, i, n) => this.applyFill(d, i, n))
-            .attr("opacity", (d, i, n) => this.applyOpacity(d, i, n))
-            .each((d, i, n) => {
-              const element = select(n[i]);
-              for (const [key, func] of Object.entries(this.interactions)) {
-                element.on(key, (d, i, n) => func(d, i, n));
-              }
-            });
-        }
+        (enter) => this.enterFunction(enter, scales, vertexMap),
+        (update) => this.updateFunction(update, scales, vertexMap)
       );
   }
 
-  applyStrokeWidth(d, i, n) {
-    return typeof this.attrs.strokeWidth === "function"
-      ? this.attrs.strokeWidth(d, i, n)
-      : this.attrs.strokeWidth;
+  enterFunction(enter, scales, vertexMap) {
+    const selection = this.shapeDelegate
+      .appender(enter, vertexMap, scales)
+      // .attr("class", (d) => getClassesFromNode(d).join(" "))
+      .attr(
+        "class",
+        (d) => `node-shape ${this.id} ${getClassesFromNode(d).join(" ")}`
+      )
+      .attr("id", (d) => d.id);
+
+    for (const attribute in this.attrs) {
+      selection.attr(
+        attribute.replace(/([A-Z])/g, "-$1").trim(),
+        this.attrs[attribute]
+      );
+    }
+    selection.each((d, i, n) => {
+      const element = select(n[i]);
+      for (const [key, func] of Object.entries(this.interactions)) {
+        element.on(key, (d, i, n) => func(d, i, n));
+      }
+    });
+    return selection;
   }
-  applyStroke(d, i, n) {
-    return typeof this.attrs.stroke === "function"
-      ? this.attrs.stroke(d, i, n)
-      : this.attrs.stroke;
-  }
-  applyFill(d, i, n) {
-    return typeof this.attrs.fill === "function"
-      ? this.attrs.fill(d, i, n)
-      : this.attrs.fill;
-  }
-  applyOpacity(d, i, n) {
-    return typeof this.attrs.opacity === "function"
-      ? this.attrs.opacity(d, i, n)
-      : this.attrs.opacity;
+  updateFunction(update, scales, vertexMap) {
+    const t = update
+      .transition(v4())
+      .duration(this._transitions.duration)
+      .ease(this._transitions.ease);
+
+    const selection = this.shapeDelegate
+      .updater(t, vertexMap, scales)
+      .attr(
+        "class",
+        (d) => `node-shape ${this.id} ${getClassesFromNode(d).join(" ")}`
+      )
+      .attr("id", (d) => d.id);
+    for (const attribute in this.attrs) {
+      selection.attr(
+        attribute.replace(/([A-Z])/g, "-$1").trim(),
+        this.attrs[attribute]
+      );
+    }
+    selection.each((d, i, n) => {
+      const element = select(n[i]);
+      for (const [key, func] of Object.entries(this.interactions)) {
+        element.on(key, (d, i, n) => func(d, i, n));
+      }
+    });
+    return selection;
   }
 }

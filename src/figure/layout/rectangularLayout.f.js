@@ -40,8 +40,8 @@ export function rectangularLayout(node, providedCache = {}) {
       ...protoVertex,
       textLabel: {
         labelBelow,
-        x: leftLabel ? "-6" : "12",
-        y: leftLabel ? (labelBelow ? "-8" : "8") : "0",
+        dx: leftLabel ? "-6" : "12",
+        dy: leftLabel ? (labelBelow ? "-8" : "8") : "0",
         alignmentBaseline: leftLabel
           ? labelBelow
             ? "bottom"

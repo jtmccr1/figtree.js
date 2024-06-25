@@ -146,6 +146,7 @@
         rectangularLayout,
         circle,
         rectangle,
+        label,
       } from "./dist/figtree.esm.js";
 
       const newickString =
@@ -180,6 +181,9 @@
                 fill:"green"
             }
 
+          }),
+          label(tree.externalNodes,{
+            text:d=>d.name
           })
         ],
       });
