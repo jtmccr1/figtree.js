@@ -9,9 +9,15 @@ export class BranchShapeDelegate {
    * @param [settings.radius=6] - the radius of the circle
    */
   constructor(options) {
-    this.curvature = options.curvature!==undefined ? options.curvature  : 1;
+    this._curvature = options.curvature!==undefined ? options.curvature  : 1;
   }
 
+  get curvature(){
+    if(typeof this._curvature=='function'){
+      return this._curvature();
+    }
+    return this._curvature;
+  }
   /**
    * A function that assigns cy,cx,and r attributes to a selection. (cx and cy are set to 0 each r is the settings radius
    * plus the border.
@@ -19,7 +25,6 @@ export class BranchShapeDelegate {
    */
 
   appender(enter, vertexMap, { x, y }) {
-    console.log(this.curvature)
     return enter
       .append("path")
       .attr("d",d=>this.pathGenerator(d,vertexMap,{x,y}))

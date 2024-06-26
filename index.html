@@ -159,7 +159,8 @@
       const layout = rectangularLayout;
       const margins = { top: 10, bottom: 60, left: 10, right: 150 };
       //    const branchSettings = branch().hilightOnHover().collapseOnClick().curve(d3.curveStepBefore);
-      let curvature = 1;
+      let baseCurve = 1
+      const curvature = ()=>baseCurve ;
 
       const figTree = new FigTree({
         svg: treeSVG,
@@ -227,15 +228,14 @@
         tree.orderByNodeDensity(true);
         // figTree.render();
       };
-
       document.getElementById("rectangular_button").onclick = function () {
         //    branchSettings.curve(d3.curveStepBefore);
-        curvature=1;
+        baseCurve=1;
         figTree.render();
     };
       document.getElementById("triangular_button").onclick = function () {
         //    branchSettings.curve(d3.curveNatural);
-        curvature=0;
+        baseCurve=0;
         figTree.render();
       };
     </script>

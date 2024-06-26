@@ -149,7 +149,7 @@ export class FigTree {
         this.layoutTree();
         this._setUpScales();
         //update scales if needed
-        for (const bauble of this.baubles) {
+        for (const bauble of this.baubles.reverse()) {
             bauble.renderAll(this.scales,this._vertexCache);
         }
     }
