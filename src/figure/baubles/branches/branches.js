@@ -24,11 +24,11 @@ export class BranchShapeDelegate {
    * @param selection
    */
 
-  appender(enter, vertexMap, { x, y }) {
-    return enter
-      .append("path")
-      .attr("d",d=>this.pathGenerator(d,vertexMap,{x,y}))
-      .attr("fill",'none')
+  appender(enter, vertexMap, { x, y }) { // This will need a label 
+    const added =  enter
+      .append("path")      
+      return this.updater(added,vertexMap,{x,y})
+
   }
   updater(update, vertexMap, { x, y }) {
     return update

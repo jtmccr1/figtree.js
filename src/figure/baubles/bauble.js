@@ -103,11 +103,11 @@ export class Bauble {
       .duration(this._transitions.duration)
       .ease(this._transitions.ease);
 
-    const selection = this.shapeDelegate
+    const selection = this.shapeDelegate 
       .updater(t, vertexMap, scales)
       .attr(
         "class",
-        (d) => `node-shape ${this.id} ${getClassesFromNode(d).join(" ")}`
+        (d) => `node-shape ${this.id} ${getClassesFromNode(d).join(" ")}` //TODO move this node shape to the delegate
       )
       .attr("id", (d) => d.id);
     for (const attribute in this.attrs) {

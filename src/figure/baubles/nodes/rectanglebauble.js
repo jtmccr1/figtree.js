@@ -10,17 +10,12 @@ export class RectangularShapeDelegate  {
             rx:2,
             ry:2,
             ...attrs}
-
         }
         appender(enter,vertexMap,{x,y}){
-            return  enter
+            const added =  enter
              .append("rect")
-             .attr("x",d=>x(vertexMap[d.id].x)-this.width(d)/2)
-             .attr("y",d=>y(vertexMap[d.id].y)-this.height(d)/2)
-             .attr("width",(d,i,n) =>  typeof this.attrs.width === 'function' ? this.attrs.width(d, i, n) : this.attrs.width)
-             .attr("height",(d,i,n) =>  typeof this.attrs.r === 'function' ? this.attrs.height(d, i, n) : this.attrs.height)
-             .attr("rx",(d,i,n) =>  typeof this.attrs.r === 'function' ? this.attrs.ry(d, i, n) : this.attrs.rx)
-             .attr("ry",(d,i,n) =>  typeof this.attrs.r === 'function' ? this.attrs.rx(d, i, n) : this.attrs.ry)
+
+            return this.updater(added,vertexMap,{x,y})
          }
          updater(update,vertexMap, {x,y}){
             return  update
