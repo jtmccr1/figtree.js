@@ -29,6 +29,25 @@ describe("tree ordering", () => {
       "(((virus1:0.1,virus2:0.12):0.08,(virus5:0.21,((virus6:0.45,virus7:0.4):0.02,(virus8:0.4,(virus9:0.04,virus10:0.03):0.7):0.1):0.2):0.03):0.075,(virus3:0.011,virus4:0.0087):0.075);"
     );
   });
+
+  it("connect all parents", function () {
+    const newickString = `((((((virus1:0.1,virus2:0.12):0.08,(virus3:0.011,virus4:0.0087):0.15):0.03,virus5:0.21):0.2,(virus6:0.45,virus7:0.4):0.02):0.1,virus8:0.4):0.1,(virus9:0.04,virus10:0.03):0.6);`;
+
+    const tree = Tree.parseNewick(newickString);
+    tree.reroot(tree.getExternalNode("virus3"), 0.5);
+
+    const connectedNodes = tree.nodes.map(n=>n.parent).filter(p=>p);
+    
+    const missing = tree.nodes.filter(n=>!n.parent).map(n=>n.name)
+    
+    console.log(missing)
+
+
+    expect([...tree.preorder()].length).toBe(19) //used children
+    expect(connectedNodes.length).toBe(18) // uses parent
+  });
+  
+
   it("rotate", function () {
     const tree = Tree.parseNewick("((A:1,B:1):1,C:2);");
     const node = tree.getExternalNode("A").parent;

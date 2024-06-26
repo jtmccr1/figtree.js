@@ -107,7 +107,7 @@ export class Bauble {
     selection.each((d, i, n) => {
       const element = select(n[i]);
       for (const [key, func] of Object.entries(this.interactions)) {
-        element.on(key, (d, i, n) => func(d, i, n));
+        element.on(key, () => func(d, i, n));
       }
     });
     return selection;
@@ -134,7 +134,7 @@ export class Bauble {
     selection.each((d, i, n) => {
       const element = select(n[i]);
       for (const [key, func] of Object.entries(this.interactions)) {
-        element.on(key, (d, i, n) => func(d, i, n));
+        element.on(key, () => func(d, i, n));
       }
     });
     return selection;

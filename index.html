@@ -185,6 +185,9 @@
               height: 10,
               // fill:"green"
             },
+            interactions:{
+              click:(d)=>{  console.log(d); tree.rotate(d)}
+            }
           }),
           label(tree.externalNodes, {
             //TODO move to node Shape
@@ -196,6 +199,9 @@
             //     stroke:'black',
             //     strokeWidth:3
             // }
+            interactions:{
+              click:(d)=>{ console.log(d);tree.reroot(d)}
+            }
           }),
         ],
       });
