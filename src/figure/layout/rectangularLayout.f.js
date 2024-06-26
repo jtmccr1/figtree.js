@@ -71,15 +71,17 @@ export function preOrderPrecursor(node) {
     let n = node;
     let p = n.parent;
     let nIndex = p.children.findIndex((d) => d === n);
-    while (nIndex === 0 && !p.isRoot()) {
-      n = p;
-      p = n.parent;
-      nIndex = p.children.findIndex((d) => d === n);
-    }
-    if (p.isRoot()) {
-      //At first child of all first children
-      return null;
-    }
+
+      while (nIndex === 0 && !p.isRoot()) {
+        n = p;
+        p = n.parent;
+        nIndex = p.children.findIndex((d) => d === n);
+      }
+      if (p.isRoot() && nIndex===0) {
+        //At first child of all first children
+        return null;
+      }
+    
     return p.children[nIndex - 1];
   }
 }

@@ -49,8 +49,8 @@
     "build": "rollup -c --bundleConfigAsCjs",
     "build:watch": "rollup -c --bundleConfigAsCjs -w",
     "dev": "rollup -c --bundleConfigAsCjs -w",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
-    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch"
+    "test": "node --experimental-vm-modules  node_modules/jest/bin/jest.js --detectOpenHandles",
+    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch --detectOpenHandles"
   },
   "files": [
     "dist"

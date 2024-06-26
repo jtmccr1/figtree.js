@@ -15,10 +15,17 @@ describe("Test preorderPrecursor",()=>{
         const pre = preOrderPrecursor(tree.getExternalNode('b'))
         expect(pre).toBe(tree.getExternalNode('a'));
     })
-    it('cousin',function(){
-        const tree = Tree.parseNewick("((a:1,b:1):1,(c:1.d:1):1);");
+    it('through root',function(){
+        const tree = Tree.parseNewick("((a:1,b:1):1,c:1);");
+        
         const pre = preOrderPrecursor(tree.getExternalNode('c'))
-        // expect(pre).toBe(tree.root.children[0]);
+        expect(pre).toBe(tree.getExternalNode('b').parent);
+    })
+    it('through other node to root',function(){
+        const tree = Tree.parseNewick("((a:1,b:1):1,(c:1,d:1));");
+        
+        const pre = preOrderPrecursor(tree.getExternalNode('c'))
+        expect(pre).toBe(tree.getExternalNode('b').parent);
     })
 })
 
@@ -56,6 +63,19 @@ describe("Test rectangular layout",()=>{
 
        
     });
+
+    it('Issue with traversal', function (){
+        // This tree is used in the index html and it the last tips Virus 10 and Virus 9 are layed out but do not affect 
+        // node positions nor do they ever change position
+        const tree =  Tree.parseNewick("((((((virus1:0.1,virus2:0.12)0.95:0.08,(virus3:0.011,virus4:0.0087)1.0:0.15)0.65:0.03,virus5:0.21)1.0:0.2,(virus6:0.45,virus7:0.4)0.51:0.02)1.0:0.1,virus8:0.4)1.0:0.1,(virus9:0.04,virus10:0.03)1.0:0.6);");
+        const v10= rectangularLayout(tree.getExternalNode("virus10"))
+        const v2= rectangularLayout(tree.getExternalNode("virus2"))
+
+        expect(v10.y).toBeCloseTo(9)
+        expect(v2.y).toBeCloseTo(1)
+
+
+    })
     
 
 

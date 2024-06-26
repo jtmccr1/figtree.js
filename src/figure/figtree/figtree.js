@@ -150,6 +150,7 @@ export class FigTree {
         this._setUpScales();
         //update scales if needed
         for (const bauble of this.baubles.reverse()) {
+          //TODO pass layout not cache
             bauble.renderAll(this.scales,this._vertexCache);
         }
     }
