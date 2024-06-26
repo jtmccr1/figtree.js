@@ -91,10 +91,25 @@ export class FigTree {
 
   }
 
-  addBauble(bauble){
-    this.baubles.push(bauble);
+  addBauble(bauble,index=0){
+    this.baubles.splice(this.baubles.length,0,bauble);
     bauble.selection(this.svgSelection)
     bauble.setFigureTransitions(this.transitions())
+  }
+
+  removeBauble(bauble){
+    this.baubles = this.baubles.filter(b=>b!==bauble);
+    bauble.clear();
+
+  }
+  replaceBauble( oldBauble,newBauble) {
+    const index = this.baubles.indexOf(oldBauble)
+    oldBauble.clear();
+    this.baubles.splice(index,1,newBauble)
+    newBauble.selection(this.svgSelection)
+    newBauble.setFigureTransitions(this.transitions())
+    this.render();
+
   }
 
 //   handelTreeUpdate({nodeId,updateLayout}){

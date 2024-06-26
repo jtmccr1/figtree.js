@@ -11,12 +11,14 @@ import { getClassesFromNode } from "../layout/layoutHelpers";
  * This is a shape or Decoration at the node or edge of a tree.
  */
 
-// inheritance is the wrong way to go want a delegate here.
-export class Bauble {
+
+//TODO add a group for each bauble with optional class so we can style backgrounds etc with css
+
+export class Bauble { 
   constructor(dataProvider, shapeDelegate, options = {}) {
     this.id = `n${v4()}`;
     this._dataP = dataProvider;
-    const { attrs, styles, interactions, transitions } = {
+    const { attrs, styles, interactions, transitions} = {
       attrs: {},
       styles: {},
       interactions: {},
@@ -31,6 +33,7 @@ export class Bauble {
     this._transitions = transitions;
     this._selection = null;
 
+    this.class = options.class?options.class:'';
     this.shapeDelegate = shapeDelegate;
   }
 
@@ -64,13 +67,25 @@ export class Bauble {
   // make
   // each implementation will handle how it gets added and this class with handle other stylings
   renderAll(scales, vertexMap) {
-    this._selection
-      .selectAll(`.${this.id}`)
+
+    const g = this._selection
+      .selectAll(`#${this.id}`)
+      .data([1])
+      .join('g')
+      .attr('id',this.id)
+      .attr('class', this.class)
+
+    g
+      .selectAll(`.${this.shapeDelegate.className}`)
       .data(this.data)
       .join(
         (enter) => this.enterFunction(enter, scales, vertexMap),
         (update) => this.updateFunction(update, scales, vertexMap)
       );
+  }
+
+  clear(){
+    this._selection.select(`#${this.id}`).remove()
   }
 
   enterFunction(enter, scales, vertexMap) {
@@ -79,7 +94,7 @@ export class Bauble {
       // .attr("class", (d) => getClassesFromNode(d).join(" "))
       .attr(
         "class",
-        (d) => `node-shape ${this.id} ${getClassesFromNode(d).join(" ")}`
+        (d) => ` ${this.shapeDelegate.className} ${getClassesFromNode(d).join(" ")}`
       )
       .attr("id", (d) => d.id);
 
@@ -107,7 +122,7 @@ export class Bauble {
       .updater(t, vertexMap, scales)
       .attr(
         "class",
-        (d) => `node-shape ${this.id} ${getClassesFromNode(d).join(" ")}` //TODO move this node shape to the delegate
+        (d) => `${this.shapeDelegate.className} ${getClassesFromNode(d).join(" ")}` //TODO move this node shape to the delegate
       )
       .attr("id", (d) => d.id);
     for (const attribute in this.attrs) {

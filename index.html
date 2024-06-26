@@ -12,7 +12,7 @@
         font-weight: 300;
       }
 
-      .branch {
+      .branch-path {
         fill: none;
         stroke: #541753;
         stroke-width: 2px;
@@ -20,39 +20,31 @@
         stroke-linejoin: round;
       }
 
-      .branch.hovered {
+      .branch-path:hover {
         stroke-width: 4px;
       }
 
-      .external-node .node-shape:not(.rough) {
+      .external-node.node-shape:not(.rough) {
         fill: #22b680;
         stroke: rgb(255, 255, 255);
         stroke-width: 1;
       }
 
-      .external-node .node-shape.hovered {
+      .external-node.node-shape:hover {
         stroke: rgb(0, 0, 0);
         /*stroke-width: 1;*/
       }
-      .external-node .node-shape.unselected {
-        fill: #22b680;
-        /*stroke: rgb(255, 255, 255);*/
-      }
-      .external-node .node-shape.selected {
-        fill: #edb23b;
-        /*stroke: rgb(0,0,0);*/
-      }
 
-      .internal-node .node-shape {
+      .internal-node.node-shape {
         fill: #29c5ef;
         /*stroke: rgb(255, 255, 255);*/
         /*stroke-width: 1;*/
       }
-      .internal-node .node-shape.hovered {
+      .internal-node.node-shape:hover {
         stroke: rgb(0, 0, 0);
       }
 
-      #root .node-shape {
+      .root.node-shape {
         fill: #e31e58;
         /*stroke: rgb(255, 255, 255);*/
         /*stroke-width: 1;*/
@@ -126,6 +118,7 @@
       <button id="sort_down_button">Sort descending</button>
       <button id="rectangular_button">Draw rectangular</button>
       <button id="triangular_button">Draw triangular</button>
+      <button id="toggle_tips_button">toggle tips</button>
     </div>
 
     <script type="module">
@@ -152,55 +145,65 @@
 
       const newickString =
         "((((((virus1:0.1,virus2:0.12)0.95:0.08,(virus3:0.011,virus4:0.0087)1.0:0.15)0.65:0.03,virus5:0.21)1.0:0.2,(virus6:0.45,virus7:0.4)0.51:0.02)1.0:0.1,virus8:0.4)1.0:0.1,(virus9:0.04,virus10:0.03)1.0:0.6);";
-
       const tree = Tree.parseNewick(newickString);
       tree.annotateNode(tree.root, { root: true });
       const treeSVG = document.getElementById("phylogram_1a");
       const layout = rectangularLayout;
       const margins = { top: 10, bottom: 60, left: 10, right: 150 };
       //    const branchSettings = branch().hilightOnHover().collapseOnClick().curve(d3.curveStepBefore);
-      let baseCurve = 0
-      const curvature = ()=>baseCurve ;
+      let baseCurve = 0;
+      const curvature = () => baseCurve;
+      const circleTips = circle(tree.externalNodes, {
+        attrs: {
+          r: "7",
+          // fill: "blue",
+          // stroke: "red",
+          // strokeWidth: 1
+        },
+      });
+      const rectTips = rectangle(tree.externalNodes, {
+        attrs: {
+          width: "20",
+          height: "20",
+          // fill: "blue",
+          // stroke: "red",
+          // strokeWidth: 1
+        },
+      });
 
+      let currentTips = "circle";
       const figTree = new FigTree({
         svg: treeSVG,
         margins,
         tree,
         layout: rectangularLayout,
         baubles: [
-          circle(tree.externalNodes, {
+          circleTips,
+          rectangle(tree.internalNodes, {
             attrs: {
-              r: "7",
-              fill: "blue",
-              stroke: "red",
-              strokeWidth: 1
+              width: 10,
+              height: 10,
+              // fill:"green"
             },
           }),
-          rectangle(tree.internalNodes,{
-            attrs:{
-                width:10,
-                height:10,
-                fill:"green"
-            }
-
+          label(tree.externalNodes, {
+            //TODO move to node Shape
+            text: (d) => d.name,
           }),
-          label(tree.externalNodes,{
-            text:d=>d.name
+          branches(tree.nodes, {
+            curvature: curvature,
+            // attrs:{
+            //     stroke:'black',
+            //     strokeWidth:3
+            // }
           }),
-          branches(tree.nodes,{
-            curvature:curvature,
-            attrs:{
-                stroke:'black',
-                strokeWidth:3
-            }
-          })
         ],
       });
 
       //    layout.internalNodeLabels="probability";
 
       figTree.addToolTip(
-        ".internal-node .node-shape",
+        ".internal-node.node-shape",
         "This is an internal node - it is the most recent<br>common ancestor of the viruses to the right.<br>Click the node to change the order of the descendents."
       );
       figTree.addToolTip(
@@ -208,15 +211,15 @@
         "This is a support value - it gives the degree<br>of statistical support that the viruses to the<br>right cluster together"
       );
       figTree.addToolTip(
-        ".external-node",
+        ".external-node.node-shape",
         "This is an external, leaf, or tip node - it represents<br>a sampled, sequenced virus"
       );
       figTree.addToolTip(
-        ".branch",
+        ".branch-path",
         "This is a branch - it represents an<br>evolutionary lineage joining two nodes"
       );
       figTree.addToolTip(
-        ".internal-node.root .node-shape ",
+        ".internal-node.root.node-shape",
         "The root node - represents the most recent<br>common ancestor of the whole tree"
       );
 
@@ -230,13 +233,23 @@
       };
       document.getElementById("rectangular_button").onclick = function () {
         //    branchSettings.curve(d3.curveStepBefore);
-        baseCurve=0;
+        baseCurve = 0;
         figTree.render();
-    };
+      };
       document.getElementById("triangular_button").onclick = function () {
         //    branchSettings.curve(d3.curveNatural);
-        baseCurve=1;
+        baseCurve = 1;
         figTree.render();
+      };
+      document.getElementById("toggle_tips_button").onclick = function () {
+        if (currentTips === "circle") {
+          figTree.replaceBauble(circleTips, rectTips);
+          currentTips = "rectangle";
+        } else {
+          figTree.replaceBauble(rectTips, circleTips);
+          currentTips = "circle";
+          console.log('set to circle')
+        }
       };
     </script>
   </body>

@@ -10,6 +10,7 @@ export class BranchShapeDelegate {
    */
   constructor(options) {
     this._curvature = options.curvature!==undefined ? options.curvature  : 1;
+    this.className='branch-path'
   }
 
   get curvature(){

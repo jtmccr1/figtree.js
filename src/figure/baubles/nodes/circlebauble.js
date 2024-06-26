@@ -10,6 +10,8 @@ export class CircleShapeDelegate {
   constructor(options) {
     const { attrs } = options;
     this.attrs = { r: 5, ...attrs };
+    this.className='node-shape'
+
   }
 
   /**

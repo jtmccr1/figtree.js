@@ -10,6 +10,8 @@ export class RectangularShapeDelegate  {
             rx:2,
             ry:2,
             ...attrs}
+            this.className='node-shape'
+
         }
         appender(enter,vertexMap,{x,y}){
             const added =  enter
