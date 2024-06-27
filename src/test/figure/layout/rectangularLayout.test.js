@@ -1,6 +1,7 @@
 import {Tree} from '../../../../src'
-import {rectangularLayout} from '../../../../src'
-import {preOrderPrecursor} from '../../../../src/figure/layout/rectangularLayout.f'
+import {rectangularLayout,transmissionLayout} from '../../../../src'
+import { preOrderPrecursor} from '../../../../src/figure/layout/rectangularLayout.f'
+
 
 describe("Test preorderPrecursor",()=>{
     it('fist node',function(){
@@ -85,5 +86,28 @@ describe("Test rectangular layout",()=>{
         const pre = preOrderPrecursor(tree.getExternalNode("virus1"))
         expect(pre).toBeNull()
       });
+
+})
+
+describe("Test transmission Layout", ()=>{
+    it('check x and y on root', function() {
+        const tree = Tree.parseNewick("((a:1,b:1):1,c:1);");
+        const root = transmissionLayout(tree.root);
+
+        expect(root.x).toBeCloseTo(0);
+        expect(root.y).toBeCloseTo(0); 
+
+        // //a
+        const a = tree.getExternalNode("a");
+        const aV = transmissionLayout(a);
+        expect(aV.x).toBeCloseTo(2);
+        expect(aV.y).toBeCloseTo(0); 
+
+        // //c
+        const c = tree.getExternalNode("c");
+        const cV = transmissionLayout(c);
+        expect(cV.x).toBeCloseTo(1);
+        expect(cV.y).toBeCloseTo(2); 
+    });
 
 })

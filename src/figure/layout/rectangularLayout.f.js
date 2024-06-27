@@ -1,63 +1,74 @@
 import { mean, min, max } from "d3-array";
 
-export function rectangularLayout(node, providedCache = {}) {
-  const cache = providedCache ? providedCache : {};
-  cache.type="EUCLIDEAN"
-  const layout = function (node) {
-    if (cache[node.id]!==undefined) {
-      return cache[node.id];
-    }
-
-    let protoVertex;
-    const x = node.divergence;
-    if (node.children) {
-      const kidVertices = node.children.map((child) => layout(child));
-      const y = mean(kidVertices, (d) => d.y);
-      const maxY = max(kidVertices, (d) => d.maxY);
-      const maxX = max(kidVertices, (d) => d.maxX);
-      const minY = min(kidVertices, (d) => d.minY);
-      protoVertex = { x, y, maxY, maxX, minY };
-    } else {
-      const precursorNode = preOrderPrecursor(node);
-      if (precursorNode) {
-        const y = layout(precursorNode).maxY;
-        protoVertex = {
-          x,
-          y: y + 1,
-          maxY: y + 1,
-          maxX: x,
-          y: y + 1,
-        };
-      } else {
-        protoVertex = { x, y: 0, maxY: 0, maxX: x, minY: 0 };
+export const euclideanLayout =
+  (yPos, xPos) =>
+  (node, providedCache = {}) => {
+    const cache = providedCache ? providedCache : {};
+    cache.type = "EUCLIDEAN";
+    const layout = function (node) {
+      if (cache[node.id] !== undefined) {
+        return cache[node.id];
       }
-    }
 
-    const leftLabel = !!node.children;
-    const labelBelow =
-      !!node.children && (!node.parent || node.parent.children[0] !== node);
+      let protoVertex;
+      const x = xPos(node);
+      if (node.children) {
+        const kidVertices = node.children.map((child) => layout(child));
+        // const y = mean(kidVertices, (d) => d.y);
+        const y = yPos(kidVertices);
+        const maxY = max(kidVertices, (d) => d.maxY);
+        const maxX = max(kidVertices, (d) => d.maxX);
+        const minY = min(kidVertices, (d) => d.minY);
+        protoVertex = { x, y, maxY, maxX, minY };
+      } else {
+        const precursorNode = preOrderPrecursor(node);
+        if (precursorNode) {
+          const y = layout(precursorNode).maxY;
+          protoVertex = {
+            x,
+            y: y + 1,
+            maxY: y + 1,
+            maxX: x,
+            y: y + 1,
+          };
+        } else {
+          protoVertex = { x, y: 0, maxY: 0, maxX: x, minY: 0 };
+        }
+      }
 
-    const vertex = {
-      ...protoVertex,
-      textLabel: {
-        labelBelow,
-        dx: leftLabel ? "-6" : "12",
-        dy: leftLabel ? (labelBelow ? "-8" : "8") : "0",
-        alignmentBaseline: leftLabel
-          ? labelBelow
-            ? "bottom"
-            : "hanging"
-          : "middle",
-        textAnchor: leftLabel ? "end" : "start",
-      },
+      const leftLabel = !!node.children;
+      const labelBelow =
+        !!node.children && (!node.parent || node.parent.children[0] !== node);
+
+      const vertex = {
+        ...protoVertex,
+        textLabel: {
+          labelBelow,
+          dx: leftLabel ? "-6" : "12",
+          dy: leftLabel ? (labelBelow ? "-8" : "8") : "0",
+          alignmentBaseline: leftLabel
+            ? labelBelow
+              ? "bottom"
+              : "hanging"
+            : "middle",
+          textAnchor: leftLabel ? "end" : "start",
+        },
+      };
+      cache[node.id] = vertex;
+      return vertex;
     };
-    cache[node.id]=vertex;
-    return vertex;
+
+    return layout(node);
   };
 
-  return layout(node)
-}
-
+export const rectangularLayout = euclideanLayout(
+  (childrenVertices) => mean(childrenVertices, (d) => d.y),
+  (node) => node.divergence
+);
+export const transmissionLayout = euclideanLayout(
+  (childrenVertices) => childrenVertices[0].y,
+  (node) => node.divergence
+);
 export function preOrderPrecursor(node) {
   if (node.children) {
     return node.children[node.children.length - 1];
@@ -72,16 +83,16 @@ export function preOrderPrecursor(node) {
     let p = n.parent;
     let nIndex = p.children.findIndex((d) => d === n);
 
-      while (nIndex === 0 && !p.isRoot()) {
-        n = p;
-        p = n.parent;
-        nIndex = p.children.findIndex((d) => d === n);
-      }
-      if (p.isRoot() && nIndex===0) {
-        //At first child of all first children
-        return null;
-      }
-    
+    while (nIndex === 0 && !p.isRoot()) {
+      n = p;
+      p = n.parent;
+      nIndex = p.children.findIndex((d) => d === n);
+    }
+    if (p.isRoot() && nIndex === 0) {
+      //At first child of all first children
+      return null;
+    }
+
     return p.children[nIndex - 1];
   }
 }
