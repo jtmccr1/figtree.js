@@ -143,7 +143,7 @@
         circle,
         rectangle,
         branches,
-        label,
+        nodeLabel,
       } from "./dist/figtree.esm.js";
 
       const newickString =
@@ -199,7 +199,7 @@
               },
             },
           }),
-          label(tree.externalNodes, {
+          nodeLabel(tree.externalNodes, {
             //TODO move to node Shape
             text: (d) => d.name,
           }),
@@ -284,7 +284,7 @@
         roughCircle,
         branches,
         roughBranches,
-        label,
+        nodeLabel,
       } from "./dist/figtree.esm.js";
 
       const newickString =

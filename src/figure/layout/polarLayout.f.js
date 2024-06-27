@@ -17,7 +17,7 @@ export function polarScaleMaker({ maxX, maxY, canvasWidth, canvasHeight, invert 
         .range(rRange);
 
 
-    const startAngle = rootAngle + (2 * 3.14 - safeAngleRange) / 2; //2pi - angle range  is what we ignore and we want to center this on the root angle
+    const startAngle = rootAngle + (2 * Math.PI - safeAngleRange) / 2; //2pi - angle range  is what we ignore and we want to center this on the root angle
     const endAngle = startAngle + safeAngleRange;
     
     const thetaScale = scaleLinear()

@@ -8,7 +8,7 @@ export function getScale({
     layoutType,
     invert = false,
     minRadius = 0,
-    angleRange = 2 * Math.PI,
+    angleRange = 1.7 * Math.PI,
     rootAngle = 0,
   }) {
 
