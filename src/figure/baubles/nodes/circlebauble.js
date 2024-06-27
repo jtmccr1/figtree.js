@@ -20,15 +20,15 @@ export class CircleShapeDelegate {
    * @param selection
    */
 
-  appender(enter, vertexMap, { x, y }) {
+  appender(enter, vertexMap, scale) {
     const added = enter.append("circle");
 
-    return this.updater(added, vertexMap, { x, y });
+    return this.updater(added, vertexMap, scale);
   }
-  updater(update, vertexMap, { x, y }) {
+  updater(update, vertexMap, scale) {
     return update
-      .attr("cx", (d) => x(vertexMap[d.id].x))
-      .attr("cy", (d) => y(vertexMap[d.id].y))
+      .attr("cx", (d) => scale(vertexMap[d.id]).x) 
+      .attr("cy", (d) => scale(vertexMap[d.id]).y)
       .attr("r", (d, i, n) =>
         typeof this.attrs.r === "function"
           ? this.attrs.r(d, i, n)

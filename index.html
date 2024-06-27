@@ -139,6 +139,7 @@
         FigTree,
         rectangularLayout,
         transmissionLayout,
+        polarLayout,
         circle,
         rectangle,
         branches,
@@ -176,9 +177,8 @@
       });
 
       let currentTips = "circle";
-      let currentLayout = 'rect';
-
-
+      let currentLayout = 0;
+      const layouts = [rectangularLayout,transmissionLayout,polarLayout]
       const figTree = new FigTree({
         svg: treeSVG,
         margins,
@@ -269,13 +269,8 @@
         }
       };
       document.getElementById("toggle_layout_button").onclick = function () {
-        if (currentLayout === "rect") {
-          figTree.layout(transmissionLayout);
-          currentLayout = "transmission";
-        } else {
-          figTree.layout(rectangularLayout);
-          currentLayout = "rect";
-        }
+        currentLayout+=1;
+        figTree.layout(layouts[currentLayout%3])
       };
     </script>
 

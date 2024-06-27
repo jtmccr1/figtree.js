@@ -20,7 +20,7 @@ export class RoughCircleShapeDelegate {
     }
 
     // here it would be good to have inheritance bc attrs get applied differently
-    appender(enter,vertexMap,{x,y}){
+    appender(enter,vertexMap,scale){
 
         const added = enter.append('g')
              added.append('path')
@@ -28,15 +28,15 @@ export class RoughCircleShapeDelegate {
              
             added.append('path')
                     .attr("class","rough-stroke")
-        return this.updater(added,vertexMap,{x,y})
+        return this.updater(added,vertexMap,scale)
     }
 
-    updater(update,vertexMap,{x,y}){
+    updater(update,vertexMap,scale){
         const [strokePath,fillPath] = [...roughFactory.circle(0, 0, this.attrs.r*2,this._roughSettings).childNodes]
         .map(d => d.getAttribute("d")).reverse();
         
         update
-        .attr('transform',d=>`translate(${x(vertexMap[d.id].x)},${y(vertexMap[d.id].y)})`)
+        .attr('transform',d=>`translate(${scale(vertexMap[d.id]).x},${scale(vertexMap[d.id]).y})`)
         
         const that = this;
         // p should be node.
@@ -64,7 +64,6 @@ export class RoughCircleShapeDelegate {
 }
 // mock document for testing purposes
 export const roughFactory = typeof document !== 'undefined' ?rough.svg(document.createElement("svg")):()=>''; 
-
 export function roughCircle(dataP,options){
         return new Bauble(dataP, new RoughCircleShapeDelegate(options), options);
       }

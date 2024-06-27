@@ -1,11 +1,11 @@
 import { mean, min, max } from "d3-array";
 
-export const euclideanLayout =
+export const baseLayout = (type)=>
   (yPos) =>
   (spacingFunction = (previousTip, currentTip) => 1) =>
   (node, providedCache = {}) => {
     const cache = providedCache ? providedCache : {};
-    cache.type = "EUCLIDEAN";
+    cache.type = type;
     
     const layout = function (node) {
       if (cache[node.id] !== undefined) {
@@ -69,15 +69,16 @@ export const euclideanLayout =
 
 
 
-export const rectangularLayoutFactory = euclideanLayout((childrenVertices) =>
+export const rectangularLayoutFactory = baseLayout("EUCLIDEAN")((childrenVertices) =>
   mean(childrenVertices, (d) => d.y))
 
-export const transmissionLayoutFactory = euclideanLayout(
+export const transmissionLayoutFactory = baseLayout("EUCLIDEAN")(
   (childrenVertices) => childrenVertices[0].y)
 
 export const rectangularLayout = rectangularLayoutFactory((pt, n) => 1);
 
 export const transmissionLayout = transmissionLayoutFactory((pt, n) => 1);
+
 
 
 export function preOrderPrecursor(node) {

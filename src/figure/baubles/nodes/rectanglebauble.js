@@ -13,16 +13,16 @@ export class RectangularShapeDelegate  {
             this.className='node-shape'
 
         }
-        appender(enter,vertexMap,{x,y}){
+        appender(enter,vertexMap,scale){
             const added =  enter
              .append("rect")
 
-            return this.updater(added,vertexMap,{x,y})
+            return this.updater(added,vertexMap,scale)
          }
-         updater(update,vertexMap, {x,y}){
+         updater(update,vertexMap, scale){
             return  update
-            .attr("x",d=>x(vertexMap[d.id].x)-this.width(d)/2)
-            .attr("y",d=>y(vertexMap[d.id].y)-this.height(d)/2)
+            .attr("x",d=>scale(vertexMap[d.id]).x-this.width(d)/2)
+            .attr("y",d=>scale(vertexMap[d.id]).y-this.height(d)/2)
             .attr("width",(d,i,n) =>  typeof this.attrs.width === 'function' ? this.attrs.width(d, i, n) : this.attrs.width)
             .attr("height",(d,i,n) =>  typeof this.attrs.r === 'function' ? this.attrs.height(d, i, n) : this.attrs.height)
             .attr("rx",(d,i,n) =>  typeof this.attrs.r === 'function' ? this.attrs.ry(d, i, n) : this.attrs.rx)

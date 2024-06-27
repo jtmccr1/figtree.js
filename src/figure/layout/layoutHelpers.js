@@ -1,6 +1,8 @@
-import {mean} from "d3-array";
 import {Type} from "../../evo/tree.js";
-import p from "../../_privateConstants.js";
+import parse from 'parse-svg-path'
+import abs from 'abs-svg-path'
+import normalize from 'normalize-svg-path'
+
 
 export function getClassesFromNode(node){
     let classes = [(!node.children ? "external-node" : "internal-node")];
@@ -26,113 +28,65 @@ export function getClassesFromNode(node){
     return classes;
 }
 
-// TODO update this to handle location for other layouts that aren't left to right
-/**
- * Makes a vertex from a node in a tree.
- * anatomy of a vertex
- * {
-        name:node.name,
-        length:node.length,
-        height:node.height,
-        divergence:node.divergence,
-        level:node.level,
-        label:node.label,
-        annotations:node.annotations,
-        key: node.id,
-        id:node.id,
-        parent:node.parent?node.parent.id:null,
-        children:node.children?node.children.map(child=>child.id):null,
-        degree: (node.children ? node.children.length + 1 : 1),// the number of edges (including stem)
-        textLabel:{
-            labelBelow:labelBelow,
-            x:leftLabel?"-6":"12",
-            y:leftLabel?(labelBelow ? "-8": "8" ):"0",
-            alignmentBaseline: leftLabel?(labelBelow ? "bottom": "hanging" ):"middle",
-            textAnchor:leftLabel?"end":"start",
-        },
+class point{
+    constructor(x,y){
+        this.x=x
+        this.y=y
+    }
+}
+const NUMBER_OF_POINTS=6; // this should be more than needed by layouts 
+export function normalizePath(path){ //TODO this might remove the fill on cartoons.
+    
+    const parsedPath = parse(path)
+    const absPath = abs(parsedPath)
+    const normalizedPath = normalize(absPath) // normalized path is [M, x,y ] [C, x1,y1, x2,y2, x,y]....
 
+    let newPath = `${normalizedPath[0][0]} ${normalizedPath[0][1]} ${normalizedPath[0][2]} `
+    let curves = normalizedPath.filter((d)=>d[0]==="C").map((curve)=>{return [new point(curve[1], curve[2]),new point(curve[3], curve[4]),new point(curve[5], curve[6])]})
 
-        classes: getVertexClassesFromNode(node),
-        [p.node]:node,
-    };
- *
- * @param node
-* @returns vertex
- */
-export function makeVertexFromNode(node){
-    const leftLabel= !!node.children;
-    const labelBelow= (!!node.children && (!node.parent || node.parent.children[0] !== node));
+    if(curves.length>NUMBER_OF_POINTS){
+        throw new Error(`Path must have no more than ${NUMBER_OF_POINTS} nodes (excluding start point) detected ${curves.length} nodes update layout or path.helpers` )
+    }
+    if(curves.length==0){
+        throw new Error('Path must have at least 1 node (excluding start point) update layout or path.helpers' )
+    }
 
-    return {
-        name:node.name,
-        length:node.length,
-        height:node.height,
-        divergence:node.divergence,
-        level:node.level,
-        label:node.label,
-        annotations:node.annotations,
-        key: node.id,
-        id:node.id,
-        parent:node.parent?node.parent.id:null,
-        children:node.children?node.children.map(child=>child.id):null,
-        degree: (node.children ? node.children.length + 1 : 1),// the number of edges (including stem)
-        textLabel:{
-            labelBelow:labelBelow,
-            x:leftLabel?"-6":"12",
-            y:leftLabel?(labelBelow ? "-8": "8" ):"0",
-            alignmentBaseline: leftLabel?(labelBelow ? "bottom": "hanging" ):"middle",
-            textAnchor:leftLabel?"end":"start",
-        },
+    while(curves.length<NUMBER_OF_POINTS){
+        const toSplit = curves.pop();
+        const {left,right} = splitCubicB(toSplit,0.5);
+        curves.push(left);
+        curves.push(right.reverse());
+    }
 
-
-        classes: getVertexClassesFromNode(node),
-        [p.node]:node,
-    };
+    for(let i = 0; i<curves.length; i++){
+        const curve = curves[i];
+        newPath+=`C${curve[0].x},${curve[0].y} ${curve[1].x},${curve[1].y} ${curve[2].x},${curve[2].y} `
+    }
+    return newPath;
 }
 
-/**
- * Makes edges from an array of vertices.
- *
- * Edge {
-            v0: parent vertex,
-            v1: target vertex,
-            key: vertex.key,
-            id:vertex.id,
-            classes:vertex.classes,
-            x:x position,
-            y:y.position,
-            textLabel:{ label postions
-                x:,
-                y: -6,
-                alignmentBaseline: "bottom",
-                textAnchor:"middle",
-            },
- * @param vertices
- * @returns {*}
- */
-export function makeEdges(vertices){
-    const nodeMap = new Map(vertices.map(v=>[v[p.node],v]));
-    return vertices.filter(v=>nodeMap.get(v[p.node].parent)).map(v=>{
-        return {
-            v0: nodeMap.get(v[p.node].parent),
-            v1: v,
-            key: v.key,
-            id:v.id,
-            classes:v.classes,
-            x:nodeMap.get(v[p.node].parent).x,
-            y:v.y,
-            textLabel:{
-                x:mean([v.x,nodeMap.get(v[p.node].parent).x]),
-                y: -6,
-                alignmentBaseline: "bottom",
-                textAnchor:"middle",
-            },
+function splitCubicB(curve,t){
+    const left=[]
+    const right=[]
+    
+    function getCurve(points,t){
+        if(points.length==1){
+            left.push(points[0])
+            right.push(points[0])
+        }else{
+            const newPoints = Array(points.length-1)
+            for(let i =0; i<newPoints.length; i++){
+                if(i==0){
+                    left.push(points[0])
+                }
+                if(i==newPoints.length-1){
+                    right.push(points[i+1])
+                }
+                newPoints[i]=new point((1-t)*points[i].x+t*points[i+1].x,(1-t)*points[i].y+t*points[i+1].y)
+            }
+            getCurve(newPoints,t)
         }
-    })
-}
-
-export const layoutFactory=makeVertices=>tree=>{
-    const vertices = makeVertices(tree);
-    const edges = makeEdges(vertices);
-    return {vertices,edges}
-};
+    }
+        getCurve(curve,t);
+        return {left,right}
+    }

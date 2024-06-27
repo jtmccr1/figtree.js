@@ -5,9 +5,9 @@ import { easeCubic } from "d3-ease";
 import { v4 } from "uuid";
 import { mergeDeep } from "../../utilities.js";
 import "d3-selection-multi";
-import {rectangularLayout} from '../layout'
+import { rectangularLayout } from "../layout";
 import p from "../../_privateConstants.js";
-import { extent } from "d3-array";
+import { getScale } from "../layout/scales.js";
 
 /** @module figtree */
 
@@ -23,7 +23,7 @@ export class FigTree {
   static DEFAULT_SETTINGS() {
     return {
       margins: { top: 10, bottom: 10, left: 10, right: 10 },
-      layout:rectangularLayout,
+      layout: rectangularLayout,
       transitions: {
         duration: 500,
         ease: easeCubic,
@@ -64,60 +64,57 @@ export class FigTree {
     this[p.svg] = safeSettings.svg;
     this[p.tree] = safeSettings.tree;
 
-    this[p.layout] = safeSettings.layout
+    this[p.layout] = safeSettings.layout;
     this.setupSVG();
     this.axes = [];
     this._features = [];
     this._vertexCache = {};
-    this._nodeUpdated ={};
+    this._nodeUpdated = {};
     this.layoutUpdated = true;
     this._calculateScales = true;
-    this.baubles=[];
+    this.baubles = [];
 
-    this[p.tree].subscribeCallback(()=>{
-      this._vertexCache = {} // clear;
+    this[p.tree].subscribeCallback(() => {
+      this._vertexCache = {}; // clear;
       this.render();
-    })
+    });
     this.settings = safeSettings;
 
     //TODO make that a constant
 
-    for(const bauble of safeSettings.baubles){
-        this.addBauble(bauble);
+    for (const bauble of safeSettings.baubles) {
+      this.addBauble(bauble);
     }
 
     this.render();
     return this;
-
   }
 
-  addBauble(bauble,index=0){
-    this.baubles.splice(this.baubles.length,0,bauble);
-    bauble.selection(this.svgSelection)
-    bauble.setFigureTransitions(this.transitions())
+  addBauble(bauble, index = 0) {
+    this.baubles.splice(this.baubles.length, 0, bauble);
+    bauble.selection(this.svgSelection);
+    bauble.setFigureTransitions(this.transitions());
   }
 
-  removeBauble(bauble){
-    this.baubles = this.baubles.filter(b=>b!==bauble);
+  removeBauble(bauble) {
+    this.baubles = this.baubles.filter((b) => b !== bauble);
     bauble.clear();
-
   }
-  replaceBauble( oldBauble,newBauble) {
-    const index = this.baubles.indexOf(oldBauble)
+  replaceBauble(oldBauble, newBauble) {
+    const index = this.baubles.indexOf(oldBauble);
     oldBauble.clear();
-    this.baubles.splice(index,1,newBauble)
-    newBauble.selection(this.svgSelection)
-    newBauble.setFigureTransitions(this.transitions())
+    this.baubles.splice(index, 1, newBauble);
+    newBauble.selection(this.svgSelection);
+    newBauble.setFigureTransitions(this.transitions());
     this.render();
-
   }
 
-//   handelTreeUpdate({nodeId,updateLayout}){
-//     if(updateLayout){
-//         this.layoutUpdated=true;
-//         delete this._vertexCache[nodeId]
-//     }
-//   }
+  //   handelTreeUpdate({nodeId,updateLayout}){
+  //     if(updateLayout){
+  //         this.layoutUpdated=true;
+  //         delete this._vertexCache[nodeId]
+  //     }
+  //   }
 
   /**
    * Setter/getter for transition setting.
@@ -159,15 +156,15 @@ export class FigTree {
       `translate(${this._margins.left},${this._margins.top})`
     );
 
-    if(this.layoutUpdated){
-        //update layout
-        this.layoutTree();
-        this._setUpScales();
-        //update scales if needed
-        for (const bauble of this.baubles.reverse()) {
-          //TODO pass layout not cache
-            bauble.renderAll(this.scales,this._vertexCache);
-        }
+    if (this.layoutUpdated) {
+      //update layout
+      this.layoutTree();
+      this._setUpScales();
+      //update scales if needed
+      for (const bauble of this.baubles.reverse()) {
+        //TODO pass layout not cache
+        bauble.renderAll(this.scales, this._vertexCache);
+      }
     }
 
     for (const feature of this._features) {
@@ -176,7 +173,6 @@ export class FigTree {
 
     return this;
   }
-
 
   /**
    * Registers some text to appear in a popup box when the mouse hovers over the selection.
@@ -203,7 +199,6 @@ export class FigTree {
     return this;
   }
 
-
   /**
    * Get or set tree
    * @param tree
@@ -215,7 +210,7 @@ export class FigTree {
     } else {
       this[p.tree] = tree;
       this[p.tree].subscribeCallback(() => {
-        this.update();
+        this.render();
       });
       this.render();
       return this;
@@ -248,7 +243,7 @@ export class FigTree {
   feature(f) {
     f.figure(this);
     this._features = this._features.concat(f);
-    this.update();
+    this.render();
     return this;
   }
 
@@ -261,7 +256,7 @@ export class FigTree {
   removeFeature(f) {
     f.figure(null);
     this._features = this._features.filter((feature) => feature != f);
-    this.update();
+    this.render();
     return this;
   }
 
@@ -277,50 +272,34 @@ export class FigTree {
     } else {
       height = this[p.svg].getBoundingClientRect().height;
     }
-      const rootVertex = this._vertexCache[(this.tree().root.id)];
-      const xdomain = [0,rootVertex.maxX];
-      const ydomain = [0, rootVertex.maxY];
-      const xScale = this.settings.x
-        .scale()
-        .domain(xdomain)
-        .range([0, width - this._margins.right - this._margins.left]);
-      const yScale = this.settings.y
-        .scale()
-        .domain(ydomain)
-        .range([0,height - this._margins.bottom - this._margins.top]); 
-      this.scales = { x: xScale, y: yScale, width, height };
+    const rootVertex = this._vertexCache[this.tree().root.id];
+
+    this.scales = getScale({
+      maxX: rootVertex.maxX,
+      maxY: rootVertex.maxY,
+      canvasHeight: height - this._margins.top - this._margins.bottom,
+      canvasWidth: width - this._margins.left - this._margins.right,
+      layoutType:this._vertexCache.type
+    });
+
   }
 
   setupSVG() {
     this.svgId = `g-${v4()}`;
     select(this[p.svg]).select(`#${this.svgId}`).remove();
-  
+
     // add a group which will contain the new tree
     select(this[p.svg])
       .append("g")
       .attr("id", this.svgId)
-      .attr("transform", `translate(${this._margins.left},${this._margins.top})`);
-  
+      .attr(
+        "transform",
+        `translate(${this._margins.left},${this._margins.top})`
+      );
+
     this.svgSelection = select(this[p.svg]).select(`#${this.svgId}`);
-  
   }
 }
 
+//Todo cache these
 
-/**
- * A helper function that sets the positions of the node and nodebackground groups in the svg and then calls update
- * functions of the node and node background elements.
- * @param nodes
- */
-function updateNodePositions(nodes) {
-  this.nodeManager.update(nodes); //hack to see if the node has been laidout TODO set flag
-  this.nodeBackgroundManager.update(nodes);
-}
-
-/**
- * A helper function that sets the positions of the branch groups and calls the update functions of the branch elements.
- * @param nodes
- */
-function updateBranchPositions(nodes) {
-  this.branchManager.update(nodes);
-}

@@ -8,21 +8,21 @@ export class LabelShapeDelegate {
     constructor(options) {
         this.text = options.text?options.text: "No label provided"; 
     }
-    appender(enter,vertexMap,{x,y}){
+    appender(enter,vertexMap,scale){
         return enter
         .append("text")
-        .attr("x",d=>x(vertexMap[d.id].x))
-        .attr("y",d=>y(vertexMap[d.id].y))
+        .attr("x",d=>scale(vertexMap[d.id]).x)
+        .attr("y",d=>scale(vertexMap[d.id]).y)
         .attr("dx",d=>vertexMap[d.id].textLabel.dx)
         .attr("dy",d=>vertexMap[d.id].textLabel.dy)
         .attr("alignment-baseline",d=>vertexMap[d.id].textLabel.alignmentBaseline)
         .attr("text-anchor",d=>vertexMap[d.id].textLabel.textAnchor)
         .text((d,i,n)=>typeof this.text === 'function' ? this.text(d, i, n) : this.text)
     }
-    updater(update,vertexMap,{x,y}){
+    updater(update,vertexMap,scale){
         return update
-        .attr("x",d=>x(vertexMap[d.id].x))
-        .attr("y",d=>y(vertexMap[d.id].y))
+        .attr("x",d=>scale(vertexMap[d.id]).x)
+        .attr("y",d=>scale(vertexMap[d.id]).y)
         .attr("dx",d=>vertexMap[d.id].textLabel.dx)
         .attr("dy",d=>vertexMap[d.id].textLabel.dy)
         .attr("alignment-baseline",d=>vertexMap[d.id].textLabel.alignmentBaseline)

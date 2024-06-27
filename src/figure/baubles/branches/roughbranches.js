@@ -13,8 +13,8 @@ export class RoughBranchShapeDelegate extends BranchShapeDelegate {
         this.className='branch-path'
     }
 
-    pathGenerator(node,vertexMap,{x,y}){
-        const basicPath=super.pathGenerator(node,vertexMap,{x,y});
+    pathGenerator(node,vertexMap,scale){
+        const basicPath=super.pathGenerator(node,vertexMap,scale);
         return [...roughFactory.path(basicPath,this._roughSettings).childNodes].map(d=>d.getAttribute("d"))[0]
 
     }

@@ -1,5 +1,5 @@
+import { normalizePath } from "../../layout/layoutHelpers";
 import { Bauble } from "../bauble";
-import { curveStepBefore } from "d3-shape";
 /**
  * The CircleBauble class. Each vertex is assigned a circle in the svg.
  */
@@ -9,12 +9,12 @@ export class BranchShapeDelegate {
    * @param [settings.radius=6] - the radius of the circle
    */
   constructor(options) {
-    this._curvature = options.curvature!==undefined ? options.curvature  : 1;
-    this.className='branch-path'
+    this._curvature = options.curvature !== undefined ? options.curvature : 1;
+    this.className = "branch-path";
   }
 
-  get curvature(){
-    if(typeof this._curvature=='function'){
+  get curvature() {
+    if (typeof this._curvature == "function") {
       return this._curvature();
     }
     return this._curvature;
@@ -25,52 +25,68 @@ export class BranchShapeDelegate {
    * @param selection
    */
 
-  appender(enter, vertexMap, { x, y }) { // This will need a label 
-    const added =  enter
-      .append("path")      
-      return this.updater(added,vertexMap,{x,y})
-
+  appender(enter, vertexMap, scale) {
+    // This will need a label
+    const added = enter.append("path");
+    return this.updater(added, vertexMap, scale);
   }
-  updater(update, vertexMap, { x, y }) {
+  updater(update, vertexMap, scale) {
     return update
-      .attr("d",d=>this.pathGenerator(d,vertexMap,{x,y}))
-      .attr("fill",'none')
-      
+      .attr("d", (d) => this.pathGenerator(d, vertexMap, scale))
+      .attr("fill", "none");
   }
-  pathGenerator(node, vertexMap, { x, y }) {
+  pathGenerator(node, vertexMap, scale) {
     if (node.parent === undefined) {
       return "";
     }
 
-    const parent = vertexMap[node.parent.id];
-    const child = vertexMap[node.id];
+    const parent = scale(vertexMap[node.parent.id]);
+    const child = scale(vertexMap[node.id]);
+    let path;
     switch (vertexMap.type) {
       case "EUCLIDEAN": {
         if (this.curvature === 0) {
           // no curve
-          var x1 = x(parent.x) + 0.001; // tiny adjustment for faded line (can't have y or x dimension not change at all
-          return `M${x1},${y(parent.y)}L${x(parent.x)},${y(child.y)}L${x(
-            child.x
-          )},${y(child.y) + 0.001}`;
+          var x1 = parent.x + 0.001; // tiny adjustment for faded line (can't have y or x dimension not change at all
+          path = `M${x1},${parent.y}L${parent.x},${child.y}L${child.x},${
+            child.y + 0.001
+          }`;
         } else if (this.curvature < 1) {
           // curve
-          return `M${x(parent.x)},${y(parent.y)}C${x(parent.x)},${y(
-            child.y
-          )}, ${
-            x(parent.x) + Math.abs(this.curvature * (x(parent.x) - x(child.x)))
-          },${y(child.y)} ${x(child.x)},${y(child.y)}`;
+          path = `M${parent.x},${parent.y}C${parent.x},${child.y}, ${
+            parent.x + Math.abs(this.curvature * (parent.x - child.x))
+          },${child.y} ${child.x},${child.y}`;
         } else {
           //(curvature == 1)
-          return `M${x(parent.x)},${y(parent.y)}L${
-            (x(parent.x) + x(child.x)) / 2
-          },${(y(parent.y) + y(child.y)) / 2}L${x(child.x)},${y(child.y)}`;
+          path = `M${parent.x},${parent.y}L${(parent.x + child.x) / 2},${
+            (parent.y + child.y) / 2
+          }L${child.x},${child.y}`;
         }
+        break;
       }
+      case "POLAR":
+        {
+          const step = scale({
+            x: vertexMap[node.parent.id].x,
+            y: vertexMap[node.id].y,
+          });
+          const arcBit =
+            parent.theta === child.theta || parent.r === 0
+              ? ""
+              : `A${parent.r},${parent.r} 0 0 ${
+                  parent.theta < child.theta ? 1 : 0
+                } ${step.x},${step.y}`; //Arc flag is going from 1 to 0 continuously
+          path = `M${parent.x},${parent.y} ${arcBit} L${child.x},${child.y}`;
+          break;
+        }
+
     }
+    return normalizePath(path);
+
   }
 }
-export function branches(dataP,options){
-  return new Bauble(dataP,new BranchShapeDelegate(options),options);
+export function branches(dataP, options) {
+  return new Bauble(dataP, new BranchShapeDelegate(options), options);
 }
 
 // function polarBranchPath(points: { x: number, y: number,r?:number,theta?:number }[]):string{
