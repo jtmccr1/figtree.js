@@ -10,7 +10,7 @@ export class RoughBranchShapeDelegate extends BranchShapeDelegate {
         const { attrs,_roughSettings } = options;
         this.attrs = { r: 5, strokeWidth:1,stroke:'black',fill:null,...attrs };
         this._roughSettings = _roughSettings?_roughSettings:{fill:this.attrs.fill};
-        this.className='branch-path rough'
+        this.className='branch-path'
     }
 
     pathGenerator(node,vertexMap,{x,y}){

@@ -16,7 +16,7 @@ export class RoughCircleShapeDelegate {
         const { attrs,_roughSettings } = options;
         this.attrs = { r: 5, strokeWidth:1,stroke:'black',fill:'grey',...attrs };
         this._roughSettings = _roughSettings?_roughSettings:{fill:this.attrs.fill};
-        this.className='node-shape rough'
+        this.className='node-shape'
     }
 
     // here it would be good to have inheritance bc attrs get applied differently
@@ -35,8 +35,6 @@ export class RoughCircleShapeDelegate {
         const [strokePath,fillPath] = [...roughFactory.circle(0, 0, this.attrs.r*2,this._roughSettings).childNodes]
         .map(d => d.getAttribute("d")).reverse();
         
-
-        console.log(fillPath)
         update
         .attr('transform',d=>`translate(${x(vertexMap[d.id].x)},${y(vertexMap[d.id].y)})`)
         
@@ -64,8 +62,8 @@ export class RoughCircleShapeDelegate {
         return update;
     }
 }
-
-export const roughFactory = rough.svg(document.createElement("svg"));
+// mock document for testing purposes
+export const roughFactory = typeof document !== 'undefined' ?rough.svg(document.createElement("svg")):()=>''; 
 
 export function roughCircle(dataP,options){
         return new Bauble(dataP, new RoughCircleShapeDelegate(options), options);
