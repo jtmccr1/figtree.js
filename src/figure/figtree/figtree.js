@@ -287,7 +287,7 @@ export class FigTree {
       const yScale = this.settings.y
         .scale()
         .domain(ydomain)
-        .range([height - this._margins.bottom - this._margins.top, 0]); //flipped
+        .range([0,height - this._margins.bottom - this._margins.top]); 
       this.scales = { x: xScale, y: yScale, width, height };
   }
 

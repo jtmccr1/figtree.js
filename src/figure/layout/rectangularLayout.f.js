@@ -1,17 +1,18 @@
 import { mean, min, max } from "d3-array";
 
 export const euclideanLayout =
-  (yPos, xPos) =>
+  (yPos) =>
+  (spacingFunction = (previousTip, currentTip) => 1) =>
   (node, providedCache = {}) => {
     const cache = providedCache ? providedCache : {};
     cache.type = "EUCLIDEAN";
+    
     const layout = function (node) {
       if (cache[node.id] !== undefined) {
         return cache[node.id];
       }
-
       let protoVertex;
-      const x = xPos(node);
+      const x = node.divergence;
       if (node.children) {
         const kidVertices = node.children.map((child) => layout(child));
         // const y = mean(kidVertices, (d) => d.y);
@@ -21,15 +22,19 @@ export const euclideanLayout =
         const minY = min(kidVertices, (d) => d.minY);
         protoVertex = { x, y, maxY, maxX, minY };
       } else {
-        const precursorNode = preOrderPrecursor(node);
-        if (precursorNode) {
-          const y = layout(precursorNode).maxY;
+        const precursorTip = precedingTip(node); // this let's us not traverse the whole tree every time if not needed.
+        // previous tip
+
+        if (precursorTip) {
+          const y = layout(precursorTip).y;
+
+          const space = spacingFunction(precedingTip, node);
           protoVertex = {
             x,
-            y: y + 1,
-            maxY: y + 1,
+            y: y + space,
+            maxY: y + space,
             maxX: x,
-            y: y + 1,
+            y: y + space,
           };
         } else {
           protoVertex = { x, y: 0, maxY: 0, maxX: x, minY: 0 };
@@ -61,14 +66,20 @@ export const euclideanLayout =
     return layout(node);
   };
 
-export const rectangularLayout = euclideanLayout(
-  (childrenVertices) => mean(childrenVertices, (d) => d.y),
-  (node) => node.divergence
-);
-export const transmissionLayout = euclideanLayout(
-  (childrenVertices) => childrenVertices[0].y,
-  (node) => node.divergence
-);
+
+
+
+export const rectangularLayoutFactory = euclideanLayout((childrenVertices) =>
+  mean(childrenVertices, (d) => d.y))
+
+export const transmissionLayoutFactory = euclideanLayout(
+  (childrenVertices) => childrenVertices[0].y)
+
+export const rectangularLayout = rectangularLayoutFactory((pt, n) => 1);
+
+export const transmissionLayout = transmissionLayoutFactory((pt, n) => 1);
+
+
 export function preOrderPrecursor(node) {
   if (node.children) {
     return node.children[node.children.length - 1];
@@ -95,4 +106,14 @@ export function preOrderPrecursor(node) {
 
     return p.children[nIndex - 1];
   }
+}
+export function precedingTip(node) {
+  const previousNode = preOrderPrecursor(node);
+  if (previousNode === null) return null; // at first tip in traversal
+
+  let prevTip = previousNode;
+  while (prevTip.children) {
+    prevTip = prevTip.children[prevTip.children.length - 1];
+  }
+  return prevTip;
 }

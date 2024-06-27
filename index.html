@@ -119,6 +119,7 @@
       <button id="rectangular_button">Draw rectangular</button>
       <button id="triangular_button">Draw triangular</button>
       <button id="toggle_tips_button">toggle tips</button>
+      <button id="toggle_layout_button">toggle layout</button>
     </div>
 
     <script type="module">
@@ -137,6 +138,7 @@
         Tree,
         FigTree,
         rectangularLayout,
+        transmissionLayout,
         circle,
         rectangle,
         branches,
@@ -153,6 +155,8 @@
       //    const branchSettings = branch().hilightOnHover().collapseOnClick().curve(d3.curveStepBefore);
       let baseCurve = 0;
       const curvature = () => baseCurve;
+
+
       const circleTips = circle(tree.externalNodes, {
         attrs: {
           r: "7",
@@ -172,6 +176,9 @@
       });
 
       let currentTips = "circle";
+      let currentLayout = 'rect';
+
+
       const figTree = new FigTree({
         svg: treeSVG,
         margins,
@@ -211,8 +218,6 @@
           }),
         ],
       });
-
-      //    layout.internalNodeLabels="probability";
 
       figTree.addToolTip(
         ".internal-node.node-shape",
@@ -261,6 +266,15 @@
           figTree.replaceBauble(rectTips, circleTips);
           currentTips = "circle";
           console.log("set to circle");
+        }
+      };
+      document.getElementById("toggle_layout_button").onclick = function () {
+        if (currentLayout === "rect") {
+          figTree.layout(transmissionLayout);
+          currentLayout = "transmission";
+        } else {
+          figTree.layout(rectangularLayout);
+          currentLayout = "rect";
         }
       };
     </script>
