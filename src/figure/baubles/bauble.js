@@ -100,7 +100,7 @@ export class Bauble {
 
     for (const attribute in this.attrs) {
       selection.attr(
-        attribute.replace(/([A-Z])/g, "-$1").trim(),
+        attribute.replace(/([A-Z])/g, "-$1").trim().toLowerCase(),
         this.attrs[attribute]
       );
     }

@@ -185,9 +185,12 @@
               height: 10,
               // fill:"green"
             },
-            interactions:{
-              click:(d)=>{  console.log(d); tree.rotate(d)}
-            }
+            interactions: {
+              click: (d) => {
+                console.log(d);
+                tree.rotate(d);
+              },
+            },
           }),
           label(tree.externalNodes, {
             //TODO move to node Shape
@@ -199,9 +202,12 @@
             //     stroke:'black',
             //     strokeWidth:3
             // }
-            interactions:{
-              click:(d)=>{ console.log(d);tree.reroot(d)}
-            }
+            interactions: {
+              click: (d) => {
+                console.log(d);
+                tree.reroot(d);
+              },
+            },
           }),
         ],
       });
@@ -254,9 +260,87 @@
         } else {
           figTree.replaceBauble(rectTips, circleTips);
           currentTips = "circle";
-          console.log('set to circle')
+          console.log("set to circle");
         }
       };
+    </script>
+
+    <script type="module">
+      import {
+        Tree,
+        FigTree,
+        rectangularLayout,
+        circle,
+        rectangle,
+        roughCircle,
+        branches,
+        roughBranches,
+        label,
+      } from "./dist/figtree.esm.js";
+
+      const newickString =
+        "((((((virus1:0.1,virus2:0.12)0.95:0.08,(virus3:0.011,virus4:0.0087)1.0:0.15)0.65:0.03,virus5:0.21)1.0:0.2,(virus6:0.45,virus7:0.4)0.51:0.02)1.0:0.1,virus8:0.4)1.0:0.1,(virus9:0.04,virus10:0.03)1.0:0.6);";
+      const tree = Tree.parseNewick(newickString);
+      tree.annotateNode(tree.root, { root: true });
+      const treeSVG = document.getElementById("phylogram_1b");
+      const layout = rectangularLayout;
+      const margins = { top: 10, bottom: 60, left: 10, right: 150 };
+      //    const branchSettings = branch().hilightOnHover().collapseOnClick().curve(d3.curveStepBefore);
+      let baseCurve = 0;
+      const curvature = () => baseCurve;
+
+
+      let currentTips = "circle";
+      const figTree = new FigTree({
+        svg: treeSVG,
+        margins,
+        tree,
+        layout: rectangularLayout,
+        baubles: [
+          roughCircle(tree.externalNodes,{
+            attrs:{
+              r:30,
+              fill:"blue"
+            }
+          }),
+          roughBranches(tree.nodes, {
+            curvature: 0.5,
+            // attrs:{
+            //     stroke:'black',
+            //     strokeWidth:3
+            // }
+            interactions: {
+              click: (d) => {
+                console.log(d);
+                tree.reroot(d);
+              },
+            },
+          }),
+        ],
+      });
+
+      //    layout.internalNodeLabels="probability";
+
+      figTree.addToolTip(
+        ".internal-node.node-shape",
+        "This is an internal node - it is the most recent<br>common ancestor of the viruses to the right.<br>Click the node to change the order of the descendents."
+      );
+      figTree.addToolTip(
+        ".label",
+        "This is a support value - it gives the degree<br>of statistical support that the viruses to the<br>right cluster together"
+      );
+      figTree.addToolTip(
+        ".external-node.node-shape",
+        "This is an external, leaf, or tip node - it represents<br>a sampled, sequenced virus"
+      );
+      figTree.addToolTip(
+        ".branch-path",
+        "This is a branch - it represents an<br>evolutionary lineage joining two nodes"
+      );
+      figTree.addToolTip(
+        ".internal-node.root.node-shape",
+        "The root node - represents the most recent<br>common ancestor of the whole tree"
+      );
     </script>
   </body>
 </html>
