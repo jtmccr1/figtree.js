@@ -140,6 +140,7 @@
         rectangularLayout,
         transmissionLayout,
         polarLayout,
+        radialLayout,
         circle,
         rectangle,
         branches,
@@ -148,7 +149,8 @@
 
       const newickString =
         "((((((virus1:0.1,virus2:0.12)0.95:0.08,(virus3:0.011,virus4:0.0087)1.0:0.15)0.65:0.03,virus5:0.21)1.0:0.2,(virus6:0.45,virus7:0.4)0.51:0.02)1.0:0.1,virus8:0.4)1.0:0.1,(virus9:0.04,virus10:0.03)1.0:0.6);";
-      const tree = Tree.parseNewick(newickString);
+     
+        const tree = Tree.parseNewick(newickString);
       tree.annotateNode(tree.root, { root: true });
       const treeSVG = document.getElementById("phylogram_1a");
       const layout = rectangularLayout;
@@ -178,7 +180,7 @@
 
       let currentTips = "circle";
       let currentLayout = 0;
-      const layouts = [rectangularLayout,transmissionLayout,polarLayout]
+      const layouts = [rectangularLayout,transmissionLayout,polarLayout,radialLayout(tree.getExternalNode("virus1"))]
       const figTree = new FigTree({
         svg: treeSVG,
         margins,
@@ -270,7 +272,7 @@
       };
       document.getElementById("toggle_layout_button").onclick = function () {
         currentLayout+=1;
-        figTree.layout(layouts[currentLayout%3])
+        figTree.layout(layouts[currentLayout%4])
       };
     </script>
 
@@ -292,7 +294,6 @@
       const tree = Tree.parseNewick(newickString);
       tree.annotateNode(tree.root, { root: true });
       const treeSVG = document.getElementById("phylogram_1b");
-      const layout = rectangularLayout;
       const margins = { top: 10, bottom: 60, left: 10, right: 150 };
       //    const branchSettings = branch().hilightOnHover().collapseOnClick().curve(d3.curveStepBefore);
       let baseCurve = 0;

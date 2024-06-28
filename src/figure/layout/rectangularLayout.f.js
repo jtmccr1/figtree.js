@@ -11,7 +11,7 @@ export const baseLayout = (type)=>
       if (cache[node.id] !== undefined) {
         return cache[node.id];
       }
-      let protoVertex;
+      let vertex;
       const x = node.divergence;
       if (node.children) {
         const kidVertices = node.children.map((child) => layout(child));
@@ -20,7 +20,7 @@ export const baseLayout = (type)=>
         const maxY = max(kidVertices, (d) => d.maxY);
         const maxX = max(kidVertices, (d) => d.maxX);
         const minY = min(kidVertices, (d) => d.minY);
-        protoVertex = { x, y, maxY, maxX, minY };
+        vertex = { x, y, maxY, maxX, minY };
       } else {
         const precursorTip = precedingTip(node); // this let's us not traverse the whole tree every time if not needed.
         // previous tip
@@ -29,7 +29,7 @@ export const baseLayout = (type)=>
           const y = layout(precursorTip).y;
 
           const space = spacingFunction(precedingTip, node);
-          protoVertex = {
+          vertex = {
             x,
             y: y + space,
             maxY: y + space,
@@ -37,28 +37,10 @@ export const baseLayout = (type)=>
             y: y + space,
           };
         } else {
-          protoVertex = { x, y: 0, maxY: 0, maxX: x, minY: 0 };
+          vertex = { x, y: 0, maxY: 0, maxX: x, minY: 0 };
         }
       }
 
-      const leftLabel = !!node.children;
-      const labelBelow =
-        !!node.children && (!node.parent || node.parent.children[0] !== node);
-
-      const vertex = {
-        ...protoVertex,
-        textLabel: {
-          labelBelow,
-          dx: leftLabel ? "-6" : "12",
-          dy: leftLabel ? (labelBelow ? "-8" : "8") : "0",
-          alignmentBaseline: leftLabel
-            ? labelBelow
-              ? "bottom"
-              : "hanging"
-            : "middle",
-          textAnchor: leftLabel ? "end" : "start",
-        },
-      };
       cache[node.id] = vertex;
       return vertex;
     };

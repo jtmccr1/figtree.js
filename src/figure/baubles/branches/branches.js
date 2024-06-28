@@ -47,7 +47,7 @@ export class BranchShapeDelegate {
       case "EUCLIDEAN": {
         if (this.curvature === 0) {
           // no curve
-          var x1 = parent.x + 0.001; // tiny adjustment for faded line (can't have y or x dimension not change at all
+          const x1 = parent.x + 0.001; // tiny adjustment for faded line (can't have y or x dimension not change at all
           path = `M${x1},${parent.y}L${parent.x},${child.y}L${child.x},${
             child.y + 0.001
           }`;
@@ -79,7 +79,13 @@ export class BranchShapeDelegate {
           path = `M${parent.x},${parent.y} ${arcBit} L${child.x},${child.y}`;
           break;
         }
-
+        case "RADIAL":
+          {
+            path = `M${parent.x},${parent.y}L${child.x},${child.y}`;
+            break;
+          }
+          default:
+            path = `M${parent.x},${parent.y}L${child.x},${child.y}`;
     }
     return normalizePath(path);
 

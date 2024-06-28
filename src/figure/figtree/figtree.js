@@ -8,6 +8,7 @@ import "d3-selection-multi";
 import { rectangularLayout } from "../layout";
 import p from "../../_privateConstants.js";
 import { getScale } from "../layout/scales.js";
+import { extent } from "d3-array";
 
 /** @module figtree */
 
@@ -274,14 +275,36 @@ export class FigTree {
     }
     const rootVertex = this._vertexCache[this.tree().root.id];
 
+    // look for max and min on cache. if not there get it from the whole tree.
+    let maxX,minX,maxY,minY;
+    if(this._vertexCache.extent){
+      maxX = this._vertexCache.extent.maxX;
+      minX = this._vertexCache.extent.minX;
+      maxY = this._vertexCache.extent.maxY;
+      minY = this._vertexCache.extent.minY;
+        }else{
+     
+      const vertices = this[p.tree].nodes.map(n=>this[p.layout](n,this._vertexCache))
+      const xExtent = extent(vertices,v=>v.x)
+      minX = xExtent[0];
+      maxX = xExtent[1];
+
+      const yExtent = extent(vertices,v=>v.y)
+      minY = yExtent[0];
+      maxY = yExtent[1];
+    
+    }
+    console.log(this._vertexCache)
+    console.log({maxX,minX,maxY,minY})
     this.scales = getScale({
-      maxX: rootVertex.maxX,
-      maxY: rootVertex.maxY,
+     maxX,
+      maxY,
+      minY,
+     minX,
       canvasHeight: height - this._margins.top - this._margins.bottom,
       canvasWidth: width - this._margins.left - this._margins.right,
       layoutType:this._vertexCache.type
     });
-
   }
 
   setupSVG() {

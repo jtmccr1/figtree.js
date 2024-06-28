@@ -23,7 +23,7 @@ export class NodeLabelShapeDelegate {
       .attr("dx", (d) => this.dx(scale(vertexMap[d.id]),d))
       .attr("dy", (d) => this.dy(scale(vertexMap[d.id]),d))
       .attr("alignment-baseline", (d) => this.baseline(scale(vertexMap[d.id]), d))
-      .attr("text-anchor", (d) => this.anchor(scale(vertexMap[d.id]),d),)
+      .attr("text-anchor", (d) => this.anchor(scale(vertexMap[d.id]),d))
       .attr("transform", (d) => this.rotation(scale(vertexMap[d.id]),d))
       .text((d, i, n) =>
         typeof this.text === "function" ? this.text(d, i, n) : this.text

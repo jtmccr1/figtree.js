@@ -34,9 +34,8 @@ class point{
         this.y=y
     }
 }
-const NUMBER_OF_POINTS=6; // this should be more than needed by layouts 
+const NUMBER_OF_POINTS=4; // this should be more than needed by layouts 
 export function normalizePath(path){ //TODO this might remove the fill on cartoons.
-    
     const parsedPath = parse(path)
     const absPath = abs(parsedPath)
     const normalizedPath = normalize(absPath) // normalized path is [M, x,y ] [C, x1,y1, x2,y2, x,y]....
