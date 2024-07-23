@@ -37,12 +37,7 @@ describe("tree ordering", () => {
     tree.reroot(tree.getExternalNode("virus3"), 0.5);
 
     const connectedNodes = tree.nodes.map(n=>n.parent).filter(p=>p);
-    
-    const missing = tree.nodes.filter(n=>!n.parent).map(n=>n.name)
-    
-    console.log(missing)
-
-
+        
     expect([...tree.preorder()].length).toBe(19) //used children
     expect(connectedNodes.length).toBe(18) // uses parent
   });

@@ -50,6 +50,24 @@ export const baseLayout = (type)=>
 
 
 
+export default function layout(tree){
+  let currentY = -1;
+  const vertexMap = new Map()
+    for(const node of tree.postorder()){
+      const x = node.divergence;
+      let y;
+      if(!node.children){
+        y = currentY+=1;
+      }
+      if(node.children){
+        y = mean(node.children.map(c=>vertexMap.get(c).y))
+      }
+      vertexMap.set(node,{x,y})
+    }
+    return vertexMap;
+}
+
+
 
 export const rectangularLayoutFactory = baseLayout("EUCLIDEAN")((childrenVertices) =>
   mean(childrenVertices, (d) => d.y))

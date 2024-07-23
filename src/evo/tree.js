@@ -183,6 +183,40 @@ export class Tree {
     yield* traverse(startNode, filter);
   }
 
+  *pseudoRerootPreOrder(node, incomingNode = null,nodeOrdering=(a,b)=>1) {
+    const traverse = function* (node, incomingNode) {
+      yield node;
+      const relatives = [node.parent && node.parent]
+        .concat(node.children && node.children)
+        .filter((n) => n); // to remove null
+      let pseudoChildren = relatives.filter((n) => n !== incomingNode).sort(nodeOrdering);
+      if (pseudoChildren.length > 0) {
+        for (const child of pseudoChildren) {
+          yield* traverse(child, node);
+        }
+      }
+    };
+    yield* traverse(node, incomingNode);
+  }
+
+  *pseudoRerootPostOrder(node, incomingNode = null,nodeOrdering=(a,b)=>1) {
+    const traverse = function* (node, incomingNode) {
+      const relatives = [node.parent && node.parent]
+        .concat(node.children && node.children)
+        .filter((n) => n); // to remove null
+      const pseudoChildren = relatives.filter((n) => n !== incomingNode).sort(nodeOrdering);
+      if (pseudoChildren.length > 0) {
+        for (const child of pseudoChildren) {
+          yield* traverse(child, node);
+        }
+      }
+      yield node;
+
+    };
+    yield* traverse(node, incomingNode);
+  }
+
+
   /**
    * A generator function that returns the nodes in a path to the root
    *

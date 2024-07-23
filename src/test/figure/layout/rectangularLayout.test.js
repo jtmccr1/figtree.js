@@ -1,5 +1,5 @@
 import {Tree} from '../../../../src'
-import {rectangularLayout,transmissionLayout} from '../../../../src'
+import {rectangularLayout} from '../../../../src'
 import { preOrderPrecursor} from '../../../../src/figure/layout/rectangularLayout.f'
 
 
@@ -34,20 +34,21 @@ describe("Test preorderPrecursor",()=>{
 describe("Test rectangular layout",()=>{
     it('check x and y on root', function() {
         const tree = Tree.parseNewick("((a:1,b:1):1,c:1);");
-        const root = rectangularLayout(tree.root);
+        const layout = rectangularLayout(tree);
 
+        const root= layout.get(tree.root)
         expect(root.x).toBeCloseTo(0);
         expect(root.y).toBeCloseTo(1.25); 
 
         // //a
         const a = tree.getExternalNode("a");
-        const aV = rectangularLayout(a);
+        const aV = layout.get(a);
         expect(aV.x).toBeCloseTo(2);
         expect(aV.y).toBeCloseTo(0); 
 
         // //c
         const c = tree.getExternalNode("c");
-        const cV = rectangularLayout(c);
+        const cV = layout.get(c)
         expect(cV.x).toBeCloseTo(1);
         expect(cV.y).toBeCloseTo(2); 
     });
@@ -55,10 +56,12 @@ describe("Test rectangular layout",()=>{
     // check above but with rotations
         
     const tree = Tree.parseNewick("((a:1,b:1):1,c:1);")
-    const ogC = rectangularLayout(tree.getExternalNode("c"));
+    const layout = rectangularLayout(tree);
+    const ogC = layout.get(tree.getExternalNode("c"));
 
     tree.orderByNodeDensity(true)
-    const reordededC = rectangularLayout(tree.getExternalNode("c"));
+    const otherlayout = rectangularLayout(tree)
+    const reordededC = otherlayout.get(tree.getExternalNode("c"));
 
         expect(ogC).not.toBe(reordededC)
 
@@ -69,8 +72,9 @@ describe("Test rectangular layout",()=>{
         // This tree is used in the index html and it the last tips Virus 10 and Virus 9 are layed out but do not affect 
         // node positions nor do they ever change position
         const tree =  Tree.parseNewick("((((((virus1:0.1,virus2:0.12)0.95:0.08,(virus3:0.011,virus4:0.0087)1.0:0.15)0.65:0.03,virus5:0.21)1.0:0.2,(virus6:0.45,virus7:0.4)0.51:0.02)1.0:0.1,virus8:0.4)1.0:0.1,(virus9:0.04,virus10:0.03)1.0:0.6);");
-        const v10= rectangularLayout(tree.getExternalNode("virus10"))
-        const v2= rectangularLayout(tree.getExternalNode("virus2"))
+        const layout = rectangularLayout(tree);
+        const v10= layout.get(tree.getExternalNode("virus10"))
+        const v2= layout.get(tree.getExternalNode("virus2"))
 
         expect(v10.y).toBeCloseTo(9)
         expect(v2.y).toBeCloseTo(1)
@@ -81,33 +85,10 @@ describe("Test rectangular layout",()=>{
     it("traversal after reroot", function () {
         const newickString = `((((((virus1:0.1,virus2:0.12):0.08,(virus3:0.011,virus4:0.0087):0.15):0.03,virus5:0.21):0.2,(virus6:0.45,virus7:0.4):0.02):0.1,virus8:0.4):0.1,(virus9:0.04,virus10:0.03):0.6);`;
     
-        const tree = Tree.parseNewick(newickString);
+        const tree = Tree.parseNewick(newickString)
         tree.reroot(tree.getExternalNode("virus1"), 0.5);
         const pre = preOrderPrecursor(tree.getExternalNode("virus1"))
         expect(pre).toBeNull()
       });
-
-})
-
-describe("Test transmission Layout", ()=>{
-    it('check x and y on root', function() {
-        const tree = Tree.parseNewick("((a:1,b:1):1,c:1);");
-        const root = transmissionLayout(tree.root);
-
-        expect(root.x).toBeCloseTo(0);
-        expect(root.y).toBeCloseTo(0); 
-
-        // //a
-        const a = tree.getExternalNode("a");
-        const aV = transmissionLayout(a);
-        expect(aV.x).toBeCloseTo(2);
-        expect(aV.y).toBeCloseTo(0); 
-
-        // //c
-        const c = tree.getExternalNode("c");
-        const cV = transmissionLayout(c);
-        expect(cV.x).toBeCloseTo(1);
-        expect(cV.y).toBeCloseTo(2); 
-    });
 
 })

@@ -36,7 +36,7 @@ export class RoughCircleShapeDelegate {
         .map(d => d.getAttribute("d")).reverse();
         
         update
-        .attr('transform',d=>`translate(${scale(vertexMap[d.id]).x},${scale(vertexMap[d.id]).y})`)
+        .attr('transform',d=>`translate(${scale.x(vertexMap.get(d).x)},${scale.y(vertexMap.get(d).y)})`)
         
         const that = this;
         // p should be node.

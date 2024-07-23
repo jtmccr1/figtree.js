@@ -4,6 +4,35 @@ import {scaleLinear} from 'd3-scale'
 // the magic happens in the scale 
 
 
+
+// polar layout will put the x y on a 100 by 100 square and that will be scaled by the figure to match
+
+// radius will need to be scaled as well.
+export default function layout(tree){
+    const step = 1.99 *Math.PI / tree.externalNodes.length
+    const vertexMap = new Map();
+    for(const node of tree.postorder()){
+        const r = node.divergence;
+        let theta;
+        let currentTheta = 0;
+        if(!node.children){
+            theta = currentTheta+=step;
+            // console.log(currentTheta)
+            // console.log(step)
+
+          }
+          if(node.children){
+            theta = mean(node.children.map(c=>vertexMap.get(c).theta))
+          }
+          vertexMap.set(node,{r,theta,...polarToCartesian(r,theta)})// might not need polar to cartcartesain here 
+    }
+
+    // console.log(vertexMap)
+    return vertexMap;
+
+}
+
+
 export function polarScaleMaker({ maxX, maxY, canvasWidth, canvasHeight, invert = false, minRadius = 0, angleRange = 1.7 * Math.PI, rootAngle = 0 }) {
   
     const maxRadius = Math.min(canvasWidth, canvasHeight) / 2;
@@ -79,7 +108,7 @@ export function polarScaleMaker({ maxX, maxY, canvasWidth, canvasHeight, invert 
 
 
 export function polarToCartesian(r, theta){
-    return [r*Math.cos(theta),r*Math.sin(theta)];
+    return {x:r*Math.cos(theta),y:r*Math.sin(theta)};
 }
 
 export function normalizeAngle(theta){

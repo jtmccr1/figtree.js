@@ -1,18 +1,17 @@
 import { radialLayout } from "../../../figure";
 import { Tree } from "../../../evo";
-import { pseudoRerootPostOrder } from "../../../figure/layout/radialLayout.f";
 
 describe("Test radial traversal",()=>{
     it('fist node',function(){
         const tree = Tree.parseNewick("((a:1,b:1):1,c:1);");
         
-        const first = pseudoRerootPostOrder(tree.getExternalNode('a')).next()
+        const first = tree.pseudoRerootPreOrder(tree.getExternalNode('a')).next()
         expect(first.value).toBe(tree.getExternalNode('a'));
     })
     it('second node',function(){
         const tree = Tree.parseNewick("((a:1,b:1):1,c:1);");
         
-        const traversal = pseudoRerootPostOrder(tree.getExternalNode('a'))
+        const traversal = tree.pseudoRerootPreOrder(tree.getExternalNode('a'))
         traversal.next()
         const second = traversal.next()
         expect(second.value).toBe(tree.getExternalNode('a').parent);
@@ -20,16 +19,32 @@ describe("Test radial traversal",()=>{
     it('third',()=>{
         const tree = Tree.parseNewick("((a:1,b:1):1,c:1);");
         
-        const traversal = pseudoRerootPostOrder(tree.getExternalNode('a'))
-        traversal.next()
-        traversal.next()
-        const n = traversal.next()
-        expect(n.value).toBe(tree.root);
+        const nodes = [...tree.pseudoRerootPreOrder(tree.getExternalNode('a'))]
+        expect(nodes[2]).toBe(tree.root);
     }
     )
 
 })
 
 describe("test layout",()=>{
-    
+    it('check x and y on root', function() {
+        const tree = Tree.parseNewick("((a:1,b:1):1,c:1);");
+        const layout = radialLayout()(tree);
+
+        const root= layout.get(tree.root)
+        expect(root.x).toBeCloseTo(0);
+        expect(root.y).toBeCloseTo(0); 
+
+        // //a
+        const a = tree.getExternalNode("a");
+        const aV = layout.get(a);
+        expect(aV.x).toBeCloseTo(0.0063274);
+        expect(aV.y).toBeCloseTo(1.7302070); 
+
+        // //c
+        const c = tree.getExternalNode("c");
+        const cV = layout.get(c)
+        expect(cV.x).toBeCloseTo(0.50316);
+        expect(cV.y).toBeCloseTo(-0.86419); 
+    });
 })

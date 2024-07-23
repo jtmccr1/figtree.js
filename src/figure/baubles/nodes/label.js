@@ -18,13 +18,13 @@ export class NodeLabelShapeDelegate {
   }
   updater(update, vertexMap, scale) {
     return update
-      .attr("x", (d) => scale(vertexMap[d.id]).x)
-      .attr("y", (d) => scale(vertexMap[d.id]).y)
-      .attr("dx", (d) => this.dx(scale(vertexMap[d.id]),d))
-      .attr("dy", (d) => this.dy(scale(vertexMap[d.id]),d))
-      .attr("alignment-baseline", (d) => this.baseline(scale(vertexMap[d.id]), d))
-      .attr("text-anchor", (d) => this.anchor(scale(vertexMap[d.id]),d))
-      .attr("transform", (d) => this.rotation(scale(vertexMap[d.id]),d))
+      .attr("x", (d) => scale.x(vertexMap.get(d).x))
+      .attr("y", (d) => scale.y(vertexMap.get(d).y))
+      .attr("dx", (d) => this.dx(vertexMap.get(d),d))
+      .attr("dy", (d) => this.dy(vertexMap.get(d),d))
+      .attr("alignment-baseline", (d) => this.baseline(vertexMap.get(d),d))
+      .attr("text-anchor", (d) => this.anchor(vertexMap.get(d),d))
+      .attr("transform", (d) => this.rotation(vertexMap.get(d),d))
       .text((d, i, n) =>
         typeof this.text === "function" ? this.text(d, i, n) : this.text
       );

@@ -21,8 +21,8 @@ export class RectangularShapeDelegate  {
          }
          updater(update,vertexMap, scale){
             return  update
-            .attr("x",d=>scale(vertexMap[d.id]).x-this.width(d)/2)
-            .attr("y",d=>scale(vertexMap[d.id]).y-this.height(d)/2)
+            .attr("x",d=>scale.x(vertexMap.get(d).x)-this.width(d)/2)
+            .attr("y",d=>scale.y(vertexMap.get(d).y)-this.height(d)/2)
             .attr("width",(d,i,n) =>  typeof this.attrs.width === 'function' ? this.attrs.width(d, i, n) : this.attrs.width)
             .attr("height",(d,i,n) =>  typeof this.attrs.r === 'function' ? this.attrs.height(d, i, n) : this.attrs.height)
             .attr("rx",(d,i,n) =>  typeof this.attrs.r === 'function' ? this.attrs.ry(d, i, n) : this.attrs.rx)

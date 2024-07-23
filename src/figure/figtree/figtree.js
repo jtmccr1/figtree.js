@@ -69,14 +69,13 @@ export class FigTree {
     this.setupSVG();
     this.axes = [];
     this._features = [];
-    this._vertexCache = {};
+    this._vertexMap = new Map();
     this._nodeUpdated = {};
     this.layoutUpdated = true;
     this._calculateScales = true;
     this.baubles = [];
 
     this[p.tree].subscribeCallback(() => {
-      this._vertexCache = {}; // clear;
       this.render();
     });
     this.settings = safeSettings;
@@ -148,7 +147,7 @@ export class FigTree {
 
   //todo - layout start node
   layoutTree() {
-    this[p.layout](this.tree().root, this._vertexCache);
+    this._vertexMap = this[p.layout](this.tree());
   }
 
   render() {
@@ -164,7 +163,7 @@ export class FigTree {
       //update scales if needed
       for (const bauble of this.baubles.reverse()) {
         //TODO pass layout not cache
-        bauble.renderAll(this.scales, this._vertexCache);
+        bauble.renderAll(this.scales, this._vertexMap);
       }
     }
 
@@ -228,7 +227,6 @@ export class FigTree {
       return this[p.layout];
     } else {
       this[p.layout] = layout;
-      this._vertexCache = {};
       this.render();
       return this;
     }
@@ -273,38 +271,33 @@ export class FigTree {
     } else {
       height = this[p.svg].getBoundingClientRect().height;
     }
-    const rootVertex = this._vertexCache[this.tree().root.id];
 
-    // look for max and min on cache. if not there get it from the whole tree.
-    let maxX,minX,maxY,minY;
-    if(this._vertexCache.extent){
-      maxX = this._vertexCache.extent.maxX;
-      minX = this._vertexCache.extent.minX;
-      maxY = this._vertexCache.extent.maxY;
-      minY = this._vertexCache.extent.minY;
-        }else{
      
-      const vertices = this[p.tree].nodes.map(n=>this[p.layout](n,this._vertexCache))
+      const vertices = this[p.tree].nodes.map(n=>this._vertexMap.get(n))
       const xExtent = extent(vertices,v=>v.x)
-      minX = xExtent[0];
-      maxX = xExtent[1];
-
       const yExtent = extent(vertices,v=>v.y)
-      minY = yExtent[0];
-      maxY = yExtent[1];
-    
-    }
-    console.log(this._vertexCache)
-    console.log({maxX,minX,maxY,minY})
-    this.scales = getScale({
-     maxX,
-      maxY,
-      minY,
-     minX,
-      canvasHeight: height - this._margins.top - this._margins.bottom,
-      canvasWidth: width - this._margins.left - this._margins.right,
-      layoutType:this._vertexCache.type
-    });
+      const rExtent = extent(vertices,v=>v.r)
+      
+      const canvasWidth = width - this._margins.left - this._margins.right;
+      const canvasHeight = height - this._margins.top - this._margins.bottom;
+
+      this.scales = {
+        x:d3.scaleLinear().domain(xExtent).range([0,canvasWidth]),
+        y:d3.scaleLinear().domain(yExtent).range([0,canvasHeight]),
+        r:d3.scaleLinear().domain(rExtent).range([0,Math.min(canvasHeight,canvasWidth)/2]),
+      }
+
+    // console.log(this._vertexCache)
+    // console.log({maxX,minX,maxY,minY})
+    // this.scales = getScale({
+    //  maxX,
+    //   maxY,
+    //   minY,
+    //  minX,
+    //   canvasHeight: height - this._margins.top - this._margins.bottom,
+    //   canvasWidth: width - this._margins.left - this._margins.right,
+    //   layoutType:this._vertexCache.type
+    // });
   }
 
   setupSVG() {

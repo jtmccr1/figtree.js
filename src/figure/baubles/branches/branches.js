@@ -1,4 +1,5 @@
 import { normalizePath } from "../../layout/layoutHelpers";
+import { polarToCartesian } from "../../layout/polarLayout.f";
 import { Bauble } from "../bauble";
 /**
  * The CircleBauble class. Each vertex is assigned a circle in the svg.
@@ -11,6 +12,7 @@ export class BranchShapeDelegate {
   constructor(options) {
     this._curvature = options.curvature !== undefined ? options.curvature : 1;
     this.className = "branch-path";
+    this.type=options.type?options.type:"rectangular"
   }
 
   get curvature() {
@@ -40,11 +42,13 @@ export class BranchShapeDelegate {
       return "";
     }
 
-    const parent = scale(vertexMap[node.parent.id]);
-    const child = scale(vertexMap[node.id]);
+    const parentV = vertexMap.get(node.parent);
+    const childV = vertexMap.get(node);
+    const parent = {x:scale.x(parentV.x),y:scale.y(parentV.y),r:parentV.r?scale.r(parentV.r):undefined,theta:parentV.theta}
+    const child = {x:scale.x(childV.x),y:scale.y(childV.y),r:childV.r?scale.r(childV.r):undefined,theta:childV.theta}
     let path;
-    switch (vertexMap.type) {
-      case "EUCLIDEAN": {
+    switch (this.type) {
+      case "rectangular": {
         if (this.curvature === 0) {
           // no curve
           const x1 = parent.x + 0.001; // tiny adjustment for faded line (can't have y or x dimension not change at all
@@ -64,12 +68,10 @@ export class BranchShapeDelegate {
         }
         break;
       }
-      case "POLAR":
+      case "polar":
         {
-          const step = scale({
-            x: vertexMap[node.parent.id].x,
-            y: vertexMap[node.id].y,
-          });
+          const step = polarToCartesian(parent.r,child.theta);// need to do this from the vertices
+          // step where the arc goes to. have paren and child thetas and parent r. so we can get x,y
           const arcBit =
             parent.theta === child.theta || parent.r === 0
               ? ""
@@ -79,7 +81,7 @@ export class BranchShapeDelegate {
           path = `M${parent.x},${parent.y} ${arcBit} L${child.x},${child.y}`;
           break;
         }
-        case "RADIAL":
+        case "radial":
           {
             path = `M${parent.x},${parent.y}L${child.x},${child.y}`;
             break;
