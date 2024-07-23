@@ -47,4 +47,34 @@ describe("test layout",()=>{
         expect(cV.x).toBeCloseTo(0.50316);
         expect(cV.y).toBeCloseTo(-0.86419); 
     });
+    it('test consistent ordering',function(){
+        const tree = Tree.parseNewick("((a:1,b:1):1,c:1);");
+        const layoutF = radialLayout(tree.getExternalNode('c'),true)
+        const layout1 = layoutF(tree);
+
+        const startingA = layout1.get(tree.getExternalNode('a'))
+        
+        tree.rotate(tree.getExternalNode('a').parent)
+
+        const layout2 = layoutF(tree)
+        
+        const endingA = layout2.get(tree.getExternalNode('a'))
+
+        expect(startingA).toEqual(endingA)
+    })
+    it('test nonconsistent ordering',function(){
+        const tree = Tree.parseNewick("((a:1,b:1):1,c:1);");
+        const layoutF = radialLayout(tree.getExternalNode('c'),false)
+        const layout1 = layoutF(tree);
+
+        const startingA = layout1.get(tree.getExternalNode('a'))
+        
+        tree.rotate(tree.getExternalNode('a').parent)
+
+        const layout2 = layoutF(tree)
+        
+        const endingA = layout2.get(tree.getExternalNode('a'))
+
+        expect(startingA).not.toEqual(endingA)
+    })
 })
