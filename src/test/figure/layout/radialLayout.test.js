@@ -23,7 +23,6 @@ describe("Test radial traversal",()=>{
         expect(nodes[2]).toBe(tree.root);
     }
     )
-
 })
 
 describe("test layout",()=>{

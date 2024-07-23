@@ -18,13 +18,14 @@ export class NodeLabelShapeDelegate {
   }
   updater(update, vertexMap, scale) {
     return update
-      .attr("x", (d) => scale.x(vertexMap.get(d).x))
-      .attr("y", (d) => scale.y(vertexMap.get(d).y))
-      .attr("dx", (d) => this.dx(vertexMap.get(d),d))
-      .attr("dy", (d) => this.dy(vertexMap.get(d),d))
+      // .attr("x", (d) => scale.x(vertexMap.get(d).x))
+      // .attr("y", (d) => scale.y(vertexMap.get(d).y))
+
+      .attr("transform", (d) => this.transform(vertexMap.get(d),d,scale))
       .attr("alignment-baseline", (d) => this.baseline(vertexMap.get(d),d))
       .attr("text-anchor", (d) => this.anchor(vertexMap.get(d),d))
-      .attr("transform", (d) => this.rotation(vertexMap.get(d),d))
+      .attr("dx", (d) => this.dx(vertexMap.get(d),d))
+      .attr("dy", (d) => this.dy(vertexMap.get(d),d))
       .text((d, i, n) =>
         typeof this.text === "function" ? this.text(d, i, n) : this.text
       );
@@ -45,14 +46,16 @@ export class NodeLabelShapeDelegate {
          return dy
  ; 
 }
-
+  transform(v,node,scale){
+    return `translate(${scale.x(v.x)},${scale.y(v.y)}) ${this.rotation(v,node)}`
+  }
  rotation(v,d) {
   if (v.theta) {
     const dx = this.dx(v,d)
     const dy = this.dy(v,d)
     return ` rotate(${textSafeDegrees(v.theta)},${v.x+dx},${v.y+dy})`;
   } else {
-    return null;
+    return '';
   }
 }
  anchor(v, d) {

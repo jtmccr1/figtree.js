@@ -33,7 +33,6 @@ export function radialLayout(startNode, fixed = true, spread = 1) {
       startNode = tree.root;
     }
 
-  
 
     const traversal = function (
       node,
