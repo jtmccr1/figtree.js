@@ -1,18 +1,40 @@
 import { normalizeAngle } from "./polarLayout.f";
 import { min } from "d3-array";
 
+function consistentSorting(incomingNode){
+  return function (node1,node2){
+  
+  if(node1.isRoot()){
+    const throughChild  = node1.children.find(n=>n!==incomingNode);
+    return throughChild.id>node2.id?-1:1
+
+  }else if (node2.isRoot()){
+    const throughChild  = node2.children.find(n=>n!==incomingNode);
+    return node1.id>throughChild.id?-1:1
+  }else{
+    return node1.id>node2.id?-1:1
+  }
+}
+}
+
 export function radialLayout(startNode, fixed = true, spread = 1) {
   // for constant ordering
 
   // if fixed keep track of the order and use it next time.
   let nodeOrder;
 
+  // we pass through the root so if one of the nodes is the root then we judge it based on it's 
+  // 'children'
+  const sorter = fixed? consistentSorting  :(node)=>(a,b)=>1
   return function layout(tree) {
     //todo set some map for fixing the traversal of the tree.
     const vertexMap = new Map();
     if (startNode == null) {
       startNode = tree.root;
     }
+
+  
+
     const traversal = function (
       node,
       currentNode = null,
@@ -68,7 +90,7 @@ export function radialLayout(startNode, fixed = true, spread = 1) {
 
         let a2 = updatedAngleStart;
 
-        for (const child of pseudoChildren) {
+        for (const child of pseudoChildren.sort(sorter(node))) {
           let a1 = a2;
           a2 = a1 + (span * childLeafCount.get(child)) / totalLeafs;
           const length = child === node.parent ? node.length : child.length;
