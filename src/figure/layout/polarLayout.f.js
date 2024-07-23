@@ -11,15 +11,12 @@ import {scaleLinear} from 'd3-scale'
 export default function layout(tree){
     const step = 1.99 *Math.PI / tree.externalNodes.length
     const vertexMap = new Map();
+    let currentTheta = -step;
     for(const node of tree.postorder()){
         const r = node.divergence;
         let theta;
-        let currentTheta = 0;
         if(!node.children){
             theta = currentTheta+=step;
-            // console.log(currentTheta)
-            // console.log(step)
-
           }
           if(node.children){
             theta = mean(node.children.map(c=>vertexMap.get(c).theta))
@@ -136,7 +133,6 @@ export function textSafeDegrees(radians){
 
 
 
-export const polarLayoutFactory = baseLayout("POLAR")((childrenVertices) =>
-    mean(childrenVertices, (d) => d.y))
-    
-  export const polarLayout =polarLayoutFactory((pt, n) => 1);
+// export const polarLayoutFactory = baseLayout("POLAR")((childrenVertices) =>
+//     mean(childrenVertices, (d) => d.y))
+// export const polarLayout =polarLayoutFactory((pt, n) => 1);

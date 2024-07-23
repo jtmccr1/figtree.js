@@ -96,20 +96,3 @@ export class BranchShapeDelegate {
 export function branches(dataP, options) {
   return new Bauble(dataP, new BranchShapeDelegate(options), options);
 }
-
-// function polarBranchPath(points: { x: number, y: number,r?:number,theta?:number }[]):string{
-//     const positions = points.length;
-//     switch (positions) {
-//         case 3: {
-//             const [parent,child,step] = points;
-//             const arcBit = parent.theta===child.theta ||parent.r===0?"":`A${parent.r},${parent.r} 0 0 ${parent.theta!<child.theta! ?1:0} ${step.x},${step.y}`;
-//             return `M${parent.x},${parent.y} ${arcBit} L${child.x},${child.y}`;
-
-//         } case 0: {
-//            return "";
-//         } default: {
-//             throw new Error(`Error in polar path generator. not expecting ${positions} points`)
-//     }
-
-//     }
-// }
