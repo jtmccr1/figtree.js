@@ -33,7 +33,7 @@ export class Bauble {
     this._transitions = transitions;
     this._selection = null;
 
-    this.class = options.class?options.class:'';
+    this.class =  options.class?options.class:'';
     this.shapeDelegate = shapeDelegate;
   }
 
@@ -66,16 +66,9 @@ export class Bauble {
   // compute scale  based on data points
   // make
   // each implementation will handle how it gets added and this class with handle other stylings
-  renderAll(scales, vertexMap) {
+  renderAll({parent,scales, vertexMap}) {
 
-    const g = this._selection
-      .selectAll(`#${this.id}`)
-      .data([1])
-      .join('g')
-      .attr('id',this.id)
-      .attr('class', this.class)
-
-    g
+    select(parent)
       .selectAll(`.${this.shapeDelegate.className}`)
       .data(this.data)
       .join(
