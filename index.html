@@ -111,8 +111,10 @@
 
     <div>
       <figure>
-        <svg id="phylogram_1a" width="600" height="500"></svg>
-        <svg id="phylogram_1b" width="600" height="500"></svg>
+        <div id="phylogram_1a">
+          </div>
+        <div id="phylogram_1b">
+          </div>
       </figure>
       <button id="sort_up_button">Sort ascending</button>
       <button id="sort_down_button">Sort descending</button>
@@ -136,7 +138,7 @@
     <script type="module">
       import {
         Tree,
-        FigTree,
+        figtree,
         rectangularLayout,
         transmissionLayout,
         polarLayout,
@@ -152,9 +154,8 @@
      
         const tree = Tree.parseNewick(newickString);
       tree.annotateNode(tree.root, { root: true });
-      const treeSVG = document.getElementById("phylogram_1a");
       const layout = rectangularLayout;
-      const margins = { top: 10, bottom: 60, left: 10, right: 150 };
+      const margins = { top: 100, bottom: 60, left: 10, right: 150 };
       //    const branchSettings = branch().hilightOnHover().collapseOnClick().curve(d3.curveStepBefore);
       let baseCurve = 0;
       const curvature = () => baseCurve;
@@ -181,10 +182,13 @@
       let currentTips = "circle";
       let currentLayout = 0;
       const layouts = [rectangularLayout,transmissionLayout,polarLayout,radialLayout(tree.getExternalNode("virus1"),true)]
-      const figTree = new FigTree({
-        svg: treeSVG,
+      
+      const options = {
+        parent: document.getElementById("phylogram_1a"),
         margins,
         tree,
+        width:600,
+        height:600,
         layout: rectangularLayout,
         baubles: [
           circleTips,
@@ -219,67 +223,74 @@
             },
           }),
         ],
-      });
+        transitions:{
+          ease:d3.easeCubic,
+          duration:500
+        }
+      }
+      figtree(options);
 
-      figTree.addToolTip(
-        ".internal-node.node-shape",
-        "This is an internal node - it is the most recent<br>common ancestor of the viruses to the right.<br>Click the node to change the order of the descendents."
-      );
-      figTree.addToolTip(
-        ".label",
-        "This is a support value - it gives the degree<br>of statistical support that the viruses to the<br>right cluster together"
-      );
-      figTree.addToolTip(
-        ".external-node.node-shape",
-        "This is an external, leaf, or tip node - it represents<br>a sampled, sequenced virus"
-      );
-      figTree.addToolTip(
-        ".branch-path",
-        "This is a branch - it represents an<br>evolutionary lineage joining two nodes"
-      );
-      figTree.addToolTip(
-        ".internal-node.root.node-shape",
-        "The root node - represents the most recent<br>common ancestor of the whole tree"
-      );
+      tree.subscribeCallback(()=>figtree(options))
+      // figTree.addToolTip(
+      //   ".internal-node.node-shape",
+      //   "This is an internal node - it is the most recent<br>common ancestor of the viruses to the right.<br>Click the node to change the order of the descendents."
+      // );
+      // figTree.addToolTip(
+      //   ".label",
+      //   "This is a support value - it gives the degree<br>of statistical support that the viruses to the<br>right cluster together"
+      // );
+      // figTree.addToolTip(
+      //   ".external-node.node-shape",
+      //   "This is an external, leaf, or tip node - it represents<br>a sampled, sequenced virus"
+      // );
+      // figTree.addToolTip(
+      //   ".branch-path",
+      //   "This is a branch - it represents an<br>evolutionary lineage joining two nodes"
+      // );
+      // figTree.addToolTip(
+      //   ".internal-node.root.node-shape",
+      //   "The root node - represents the most recent<br>common ancestor of the whole tree"
+      // );
 
       document.getElementById("sort_up_button").onclick = function () {
         tree.orderByNodeDensity(false);
-        // figTree.render();
+        figtree(options);
       };
       document.getElementById("sort_down_button").onclick = function () {
         tree.orderByNodeDensity(true);
-        // figTree.render();
+        figtree(options);
       };
       document.getElementById("rectangular_button").onclick = function () {
-        //    branchSettings.curve(d3.curveStepBefore);
         baseCurve = 0;
-        figTree.render();
+        figtree(options)
       };
       document.getElementById("triangular_button").onclick = function () {
         //    branchSettings.curve(d3.curveNatural);
         baseCurve = 1;
-        figTree.render();
+        figtree(options)
       };
       document.getElementById("toggle_tips_button").onclick = function () {
-        if (currentTips === "circle") {
-          figTree.replaceBauble(circleTips, rectTips);
-          currentTips = "rectangle";
-        } else {
-          figTree.replaceBauble(rectTips, circleTips);
-          currentTips = "circle";
-          console.log("set to circle");
-        }
+        // if (currentTips === "circle") {
+        //   figTree.replaceBauble(circleTips, rectTips);
+        //   currentTips = "rectangle";
+        // } else {
+        //   figTree.replaceBauble(rectTips, circleTips);
+        //   currentTips = "circle";
+        //   console.log("set to circle");
+        // }
       };
       document.getElementById("toggle_layout_button").onclick = function () {
         currentLayout+=1;
-        figTree.layout(layouts[currentLayout%4])
+        options['layout'] = layouts[currentLayout%4];
+        figtree(options)
+
       };
     </script>
 
     <script type="module">
       import {
         Tree,
-        FigTree,
+        figtree,
         rectangularLayout,
         circle,
         rectangle,
@@ -301,7 +312,7 @@
 
 
       let currentTips = "circle";
-      const figTree = new FigTree({
+      figtree({
         svg: treeSVG,
         margins,
         tree,
@@ -331,26 +342,26 @@
 
       //    layout.internalNodeLabels="probability";
 
-      figTree.addToolTip(
-        ".internal-node.node-shape",
-        "This is an internal node - it is the most recent<br>common ancestor of the viruses to the right.<br>Click the node to change the order of the descendents."
-      );
-      figTree.addToolTip(
-        ".label",
-        "This is a support value - it gives the degree<br>of statistical support that the viruses to the<br>right cluster together"
-      );
-      figTree.addToolTip(
-        ".external-node.node-shape",
-        "This is an external, leaf, or tip node - it represents<br>a sampled, sequenced virus"
-      );
-      figTree.addToolTip(
-        ".branch-path",
-        "This is a branch - it represents an<br>evolutionary lineage joining two nodes"
-      );
-      figTree.addToolTip(
-        ".internal-node.root.node-shape",
-        "The root node - represents the most recent<br>common ancestor of the whole tree"
-      );
+      // figTree.addToolTip(
+      //   ".internal-node.node-shape",
+      //   "This is an internal node - it is the most recent<br>common ancestor of the viruses to the right.<br>Click the node to change the order of the descendents."
+      // );
+      // figTree.addToolTip(
+      //   ".label",
+      //   "This is a support value - it gives the degree<br>of statistical support that the viruses to the<br>right cluster together"
+      // );
+      // figTree.addToolTip(
+      //   ".external-node.node-shape",
+      //   "This is an external, leaf, or tip node - it represents<br>a sampled, sequenced virus"
+      // );
+      // figTree.addToolTip(
+      //   ".branch-path",
+      //   "This is a branch - it represents an<br>evolutionary lineage joining two nodes"
+      // );
+      // figTree.addToolTip(
+      //   ".internal-node.root.node-shape",
+      //   "The root node - represents the most recent<br>common ancestor of the whole tree"
+      // );
     </script>
   </body>
 </html>
