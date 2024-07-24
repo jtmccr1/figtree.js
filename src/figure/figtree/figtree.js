@@ -282,9 +282,9 @@ export class FigTree {
       const canvasHeight = height - this._margins.top - this._margins.bottom;
 
       this.scales = {
-        x:d3.scaleLinear().domain(xExtent).range([0,canvasWidth]),
-        y:d3.scaleLinear().domain(yExtent).range([0,canvasHeight]),
-        r:d3.scaleLinear().domain(rExtent).range([0,Math.min(canvasHeight,canvasWidth)/2]),
+        x:scaleLinear().domain(xExtent).range([0,canvasWidth]),
+        y:scaleLinear().domain(yExtent).range([0,canvasHeight]),
+        r:scaleLinear().domain(rExtent).range([0,Math.min(canvasHeight,canvasWidth)/2]),
       }
 
     // console.log(this._vertexCache)
@@ -313,6 +313,8 @@ export class FigTree {
         `translate(${this._margins.left},${this._margins.top})`
       );
 
+      
+    
     this.svgSelection = select(this[p.svg]).select(`#${this.svgId}`);
   }
 }
