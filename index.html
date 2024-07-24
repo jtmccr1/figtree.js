@@ -150,9 +150,8 @@
       } from "./dist/figtree.esm.js";
 
       const newickString =
-        "((((((virus1:0.1,virus2:0.12)0.95:0.08,(virus3:0.011,virus4:0.0087)1.0:0.15)0.65:0.03,virus5:0.21)1.0:0.2,(virus6:0.45,virus7:0.4)0.51:0.02)1.0:0.1,virus8:0.4)1.0:0.1,(virus9:0.04,virus10:0.03)1.0:0.6);";
-     
-        const tree = Tree.parseNewick(newickString);
+        "((KC242791|Bonduni|DRC|1977-06:0.000001,KR063671|Yambuku-Mayinga|DRC|1976-10-01:0.000001)100:0.0036857561,((((HQ613402|034-KS|DRC|2008-12-31:0.0003095267,HQ613403|M-M|DRC|2007-08-31:0.000001)100:0.0146664314,KJ660347|Makona-Gueckedou-C07|Guinea|2014-03-20:0.0324939546)71:0.0010052902,(KC242800|Ilembe|Gabon|2002-02-23:0.0014662389,KF113529|Kelle_2|COG|2003-10:0.0022586761)100:0.0183507571)100:0.0090231142,(((KC242792|Gabon|Gabon|1994-12-27:0.0009300536,KC242793|1Eko|Gabon|1996-02:0.0024813816)100:0.0012217736,KC242794|2Nza|Gabon|1996-10-27:0.0031218941)100:0.0073664445,KU182905|Kikwit-9510621|DRC|1995-05-04:0.0052093028)100:0.0059881943)100:0.0036857561);";
+            const tree = Tree.parseNewick(newickString);
       tree.annotateNode(tree.root, { root: true });
       const layout = rectangularLayout;
       const margins = { top: 100, bottom: 60, left: 10, right: 150 };
@@ -181,7 +180,7 @@
 
       let currentTips = "circle";
       let currentLayout = 0;
-      const layouts = [rectangularLayout,transmissionLayout,polarLayout,radialLayout(tree.getExternalNode("virus1"),true)]
+      const layouts = [rectangularLayout,transmissionLayout,polarLayout,radialLayout(tree.getExternalNode("KC242791|Bonduni|DRC|1977-06"),true)]
       
       const options = {
         parent: document.getElementById("phylogram_1a"),

@@ -68,9 +68,9 @@ export class Bauble {
   // each implementation will handle how it gets added and this class with handle other stylings
   renderAll({parent,scales, vertexMap}) {
 
-    select(parent)
+    select(parent)// parent is the group
       .selectAll(`.${this.shapeDelegate.className}`)
-      .data(this.data)
+      .data(this.data,node=>node.id)
       .join(
         (enter) => this.enterFunction(enter, scales, vertexMap),
         (update) => this.updateFunction(update, scales, vertexMap)
