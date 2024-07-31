@@ -25,7 +25,7 @@ describe("Test radial traversal",()=>{
     )
 })
 
-describe("test layout",()=>{
+describe("test radial layout",()=>{
     it('check x and y on root', function() {
         const tree = Tree.parseNewick("((a:1,b:1):1,c:1);");
         const layout = radialLayout()(tree);

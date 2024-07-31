@@ -1,5 +1,7 @@
 // import { Tree, Type } from "./src/tree.js";
 
+import { decimalToDate } from "./utilities";
+
 // import {Bauble} from "./src/baubles/bauble.js"
 // import {FigTree} from "./src/figtree/figtree.js";
 // import {CircleBauble,circle} from "./src/baubles/nodes/circlebauble";
@@ -47,3 +49,4 @@
 
 export * from "./evo";
 export * from "./figure"
+export {decimalToDate} from "./utilities"

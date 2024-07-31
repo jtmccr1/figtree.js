@@ -29,6 +29,7 @@ export default function figtree(opts) {
     features,
   } = opts;
 
+  console.log(parent)
   //add svg or update svg as needed
   const svgSelection = select(parent)
     .selectAll(".figtree")

@@ -163,6 +163,20 @@ export class Tree {
     yield* traverse(startNode, filter);
   }
 
+  *tips(startNode=this.root){
+    const traverse = function* (node,) {
+        
+      if(!node.children) yield node;
+        if (node.children != null) {
+          for (const child of node.children) {
+            yield* traverse(child);
+          }
+        }
+    };
+
+    yield* traverse(startNode);
+  }
+
   /**
    * A generator function that returns the nodes in a post-order traversal
    *
@@ -183,13 +197,15 @@ export class Tree {
     yield* traverse(startNode, filter);
   }
 
-  *pseudoRerootPreOrder(node, incomingNode = null,nodeOrdering=(a,b)=>1) {
+  *pseudoRerootPreOrder(node, incomingNode = null, nodeOrdering = (a, b) => 1) {
     const traverse = function* (node, incomingNode) {
       yield node;
       const relatives = [node.parent && node.parent]
         .concat(node.children && node.children)
         .filter((n) => n); // to remove null
-      let pseudoChildren = relatives.filter((n) => n !== incomingNode).sort(nodeOrdering);
+      let pseudoChildren = relatives
+        .filter((n) => n !== incomingNode)
+        .sort(nodeOrdering);
       if (pseudoChildren.length > 0) {
         for (const child of pseudoChildren) {
           yield* traverse(child, node);
@@ -199,23 +215,27 @@ export class Tree {
     yield* traverse(node, incomingNode);
   }
 
-  *pseudoRerootPostOrder(node, incomingNode = null,nodeOrdering=(a,b)=>1) {
+  *pseudoRerootPostOrder(
+    node,
+    incomingNode = null,
+    nodeOrdering = (a, b) => 1
+  ) {
     const traverse = function* (node, incomingNode) {
       const relatives = [node.parent && node.parent]
         .concat(node.children && node.children)
         .filter((n) => n); // to remove null
-      const pseudoChildren = relatives.filter((n) => n !== incomingNode).sort(nodeOrdering);
+      const pseudoChildren = relatives
+        .filter((n) => n !== incomingNode)
+        .sort(nodeOrdering);
       if (pseudoChildren.length > 0) {
         for (const child of pseudoChildren) {
           yield* traverse(child, node);
         }
       }
       yield node;
-
     };
     yield* traverse(node, incomingNode);
   }
-
 
   /**
    * A generator function that returns the nodes in a path to the root
@@ -263,63 +283,70 @@ export class Tree {
       return;
     }
     this.batchUpdateOn();
-    const rootLength =
-      this.root.children[0].length + this.root.children[1].length;
 
-    //added to root at the end
-    const rootChild1 = node;
-    const rootChild2 = node.parent;
+    // if we are rooted on an internal node then we need to insert a
+    // node to be the new root.
+    // There is no going back for the time being.
+    if (this.root.children.length > 2) {
+      const newRoot = this.splitBranch(node, proportion);
+      const oldRoot = this.root;
+      this._root = newRoot;
+      // all that is left is to swap the parent relationships back to the root.
 
-    const nodeAtTop = node.parent.children[0] === node;
-
-    if (node.parent !== this.root) {
-      // the node is not a child of the existing root so the root is actually changing
-
-      let node0 = node;
-      let parent = node.parent;
-      let gp = parent.parent;
-
-      // was the node the first child in the parent's children?
-
-      let oldLength = parent.length;
+      let node0 = newRoot;
       let done = false;
-      parent.removeChild(node0);
-
-      // we are already at the root so we only need to turn root children around
-      if (gp === this.root) {
-        const sibling = this.getSibling(parent);
-        gp.removeChild(sibling);
-        gp.removeChild(parent);
-        parent.addChild(sibling);
-        sibling._length = rootLength;
-        done = true;
-      }else{
-        let tmpGP = gp.parent;
-        gp.removeChild(parent);
-        gp.parent.removeChild(gp);
-
-        parent.addChild(gp);
-        // swap the parent and parent's parent's length around
-
-        let tmp = gp._length;
-        gp._length = oldLength;
-        oldLength = tmp;
-
-        node0 = parent;
-        parent = gp;
-        gp = tmpGP;
-      }
-
+      let oldLength = node0.length;
       while (!done) {
+        let parent = node0.parent;
+
+        parent.removeChild(node0);
+
+        node0.addChild(parent);
+        let tmpLength = parent.length;
+        parent.length = oldLength;
+        oldLength = tmpLength;
+        if (parent === oldRoot) {
+          done = true;
+        }
+        node0 = parent;
+      }
+      this.root.length = null;
+    } else {
+      const rootLength =
+        this.root.children[0].length + this.root.children[1].length;
+
+      //added to root at the end
+      const rootChild1 = node;
+      const rootChild2 = node.parent;
+
+      const nodeAtTop = node.parent.children[0] === node;
+
+      if (node.parent !== this.root) {
+        // the node is not a child of the existing root so the root is actually changing
+
+        let node0 = node;
+        let parent = node.parent;
+        let gp = parent.parent;
+
+        // was the node the first child in the parent's children?
+
+        let oldLength = parent.length;
+        let done = false;
+        parent.removeChild(node0);
+
+        // we are already at the root so we only need to turn root children around
         if (gp === this.root) {
-          const sibling = this.root.children[0]; // root only has 1 child at this point
+          const sibling = this.getSibling(parent);
           gp.removeChild(sibling);
+          gp.removeChild(parent);
           parent.addChild(sibling);
           sibling._length = rootLength;
           done = true;
         } else {
           let tmpGP = gp.parent;
+          gp.removeChild(parent);
           gp.parent.removeChild(gp);
+
           parent.addChild(gp);
           // swap the parent and parent's parent's length around
 
@@ -331,31 +358,53 @@ export class Tree {
           parent = gp;
           gp = tmpGP;
         }
-      }
 
-      // Reuse the root node as root...
+        while (!done) {
+          if (gp === this.root) {
+            const sibling = this.root.children[0]; // root only has 1 child at this point
+            gp.removeChild(sibling);
+            parent.addChild(sibling);
+            sibling._length = rootLength;
+            done = true;
+          } else {
+            let tmpGP = gp.parent;
+            gp.parent.removeChild(gp);
+            parent.addChild(gp);
+            // swap the parent and parent's parent's length around
 
-      // Set the order of the children to be the same as for the original parent of the node.
-      // This makes for a more visually consistent rerooting graphically.
+            let tmp = gp._length;
+            gp._length = oldLength;
+            oldLength = tmp;
 
-      if (nodeAtTop) {
-        this.root.addChild(rootChild1);
-        this.root.addChild(rootChild2);
+            node0 = parent;
+            parent = gp;
+            gp = tmpGP;
+          }
+        }
+
+        // Reuse the root node as root...
+
+        // Set the order of the children to be the same as for the original parent of the node.
+        // This makes for a more visually consistent rerooting graphically.
+
+        if (nodeAtTop) {
+          this.root.addChild(rootChild1);
+          this.root.addChild(rootChild2);
+        } else {
+          this.root.addChild(rootChild2);
+          this.root.addChild(rootChild1);
+        }
+
+        const l = rootChild1.length * proportion;
+        rootChild2._length = l;
+        rootChild1._length = rootChild1.length - l;
       } else {
-        this.root.addChild(rootChild2);
-        this.root.addChild(rootChild1);
+        // the root is staying the same, just the position of the root changing
+        const l = node.length * (1.0 - proportion);
+        node._length = l;
+        this.getSibling(node)._length = rootLength - l;
       }
-
-      const l = rootChild1.length * proportion;
-      rootChild2._length = l;
-      rootChild1._length = rootChild1.length - l;
-    } else {
-      // the root is staying the same, just the position of the root changing
-      const l = node.length * (1.0 - proportion);
-      node._length = l;
-      this.getSibling(node)._length = rootLength - l;
     }
-
     this.heightsKnown = false;
     this.batchUpdateOff();
   }
@@ -1475,7 +1524,7 @@ class Node {
     }
     this._height = value;
     this._tree.lengthsKnown = false;
-    // this._tree.treeUpdateCallback();
+    this._tree.treeUpdateCallback();
   }
 
   get length() {
@@ -1491,7 +1540,7 @@ class Node {
     }
     this._tree.heightsKnown = false;
     this._length = value;
-    // this._tree.treeUpdateCallback();
+    this._tree.treeUpdateCallback();
   }
 
   get annotations() {
