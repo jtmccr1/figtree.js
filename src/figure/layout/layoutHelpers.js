@@ -1,4 +1,4 @@
-import {Type} from "../../evo/tree.js";
+import {Type} from "../../evo/tree/tree.js";
 import parse from 'parse-svg-path'
 import abs from 'abs-svg-path'
 import normalize from 'normalize-svg-path'

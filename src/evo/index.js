@@ -1,1 +1,1 @@
-export {Tree} from "./tree.js";
+export {Tree} from "./tree";

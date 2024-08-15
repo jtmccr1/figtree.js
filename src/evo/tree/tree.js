@@ -5,10 +5,7 @@
 import { v4 } from "uuid";
 import { timeParse } from "d3-time-format";
 import { maxIndex, max } from "d3-array";
-import { dateToDecimal } from "../utilities";
-// import * as BitSetModule from "bitset";
-// const BitSet =BitSetModule.__moduleExports;
-// for unique node ids
+import { dateToDecimal } from "../../utilities";
 export const Type = {
   DISCRETE: Symbol("DISCRETE"),
   BOOLEAN: Symbol("BOOLEAN"),
